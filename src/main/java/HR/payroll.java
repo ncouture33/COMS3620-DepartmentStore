@@ -1,31 +1,40 @@
+package HR;
+import java.util.ArrayList;
+
 public class Payroll {
 
-    private ArrayList<Employees> listEmployees;
-    // private ArrayList<Timecard> listCards;
+    private ArrayList<BaseEmployee> listEmployees;
+    private Account companyAccount;
 
-    public Payroll(){
-        list = new ArrayList<Employees>();
+    public Payroll(Account companyAccount){
+        listEmployees = new ArrayList<BaseEmployee>();
+        this.companyAccount = companyAccount;
     }
 
-    public boolean addEmployee(Employee employee){
+    public void addEmployee(BaseEmployee employee){
         listEmployees.add(employee);
     }
 
-    public boolean removeEmployee(Employee employee){
+    public void removeEmployee(BaseEmployee employee){
         listEmployees.remove(employee);
     }   
 
-    public ArrayList<Paycheck> payEmployees(int date){
-        ArrayList<Paycheck> checks = new ArrayList<Paycheck>();
-        for(int i = 0; i < list.length(); i++){
-            checks.add(payEmployee(list.get(i)));
+    public ArrayList<Paystub> payEmployees(String date){
+        ArrayList<Paystub> checks = new ArrayList<Paystub>();
+        for(int i = 0; i < listEmployees.size(); i++){
+            double amount = payEmployee(listEmployees.get(i));
+            Paystub paystub = producePaystub(amount, listEmployees.get(i).getTimecard(), date);
+            checks.add(paystub);
         }
+        return checks;
     }
 
-    private Paycheck payEmployee(Employee employee){
-        Account accountToDepositTo = employee.getAccount();
-        Paycheck payCheck = accountToDepositTo.deposit(Timecard card);
-        return payCheck;
+    private double payEmployee(BaseEmployee employee){
+        return companyAccount.transfer(employee.renderPayment(), employee.getAccount());
+    }
+
+    private Paystub producePaystub(double amount, TimeCard card, String date){
+        return new Paystub(card, amount, date);
     }
 
 }
