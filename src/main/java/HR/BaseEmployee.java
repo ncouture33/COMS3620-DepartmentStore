@@ -1,6 +1,8 @@
 package HR;
 
-public abstract class BaseEmployee implements EmployeeActions{
+import Utils.Data;
+
+public abstract class BaseEmployee implements EmployeeActions, Data {
     protected int id;
     protected String fName;
     protected String lName;
@@ -84,6 +86,14 @@ public abstract class BaseEmployee implements EmployeeActions{
 
     public TimeCard getTimecard() {
         return card;
+    }
+
+    public String toString(){
+        return "ID: " + id + ", Name: " + fName + " " + lName + ", DOB: " + DOB + ", Social: " + social + ", TimeCard: [" + card.toString() + "]";
+    }
+
+    public String toData(){
+        return id + " " + fName + " " + lName +  " " + DOB + " " + social + " " + card.getData() + " " + directDepositAccount.getData() + " ";
     }
 
 }

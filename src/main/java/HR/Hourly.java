@@ -36,4 +36,11 @@ public class Hourly extends BaseEmployee{
     public void resetTimeCard() {
         card = new TimeCard();
     }
+
+    public String toString(){
+        return "HOURLY, " + super.toString() + ", Hourly Rate: " + hourlyRate + ", Overtime Rate: " + overtimeRate;
+    }
+    public String getData(){
+        return "HOURLY " + super.toData() + hourlyRate + " " + overtimeRate + " ";
+    }
 }

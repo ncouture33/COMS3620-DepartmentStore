@@ -1,7 +1,8 @@
 package HR;
 import java.util.ArrayList;
+import Utils.Data;
 
-public class Payroll {
+public class Payroll implements Data{
 
     private ArrayList<BaseEmployee> listEmployees;
     private Account companyAccount;
@@ -17,7 +18,11 @@ public class Payroll {
 
     public void removeEmployee(BaseEmployee employee){
         listEmployees.remove(employee);
-    }   
+    }
+
+    public void setEmployees(ArrayList<BaseEmployee> employees){
+        listEmployees = employees;
+    }
 
     public ArrayList<Paystub> payEmployees(String date){
         ArrayList<Paystub> checks = new ArrayList<Paystub>();
@@ -37,4 +42,26 @@ public class Payroll {
         return new Paystub(card, amount, date);
     }
 
+    public String toString(){
+        StringBuilder str = new StringBuilder();
+        str.append("Payroll Information:\n");
+        str.append("Company Account: ").append(companyAccount.getBank()).append(" ").append(companyAccount.getRoutingNumber()).append(" ").append(companyAccount.getAccountNumber()).append("\n");
+        str.append("Employees:\n");
+        for(int i = 0; i < listEmployees.size(); i++){
+            str.append(listEmployees.get(i).toString()).append("\n");
+        }
+        return str.toString();
+    }
+
+    @Override
+    public String getData() {
+        StringBuilder data = new StringBuilder();
+        data.append("EMPLOYEES\n");
+        for (int i = 0; i < listEmployees.size(); i++) {
+            data.append(listEmployees.get(i).getData()).append("\n");
+        }
+        data.append("COMPANY_ACCOUNT\n");
+        data.append(companyAccount.getData()).append("\n");
+        return data.toString();
+    }
 }
