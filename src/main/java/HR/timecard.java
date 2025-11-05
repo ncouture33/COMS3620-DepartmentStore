@@ -1,6 +1,7 @@
 package HR;
+import Utils.Data;
 
-public class TimeCard {
+public class TimeCard implements Data{
     private int timePeriod;
     private double hoursWorked;
     private double overtimeHours;
@@ -9,6 +10,12 @@ public class TimeCard {
         this.timePeriod = 0;
         this.hoursWorked = 0;
         this.overtimeHours = 0;
+    }
+
+    public TimeCard(int timePeriod, double hoursWorked, double overtimeHours) {
+        this.timePeriod = timePeriod;
+        this.hoursWorked = hoursWorked;
+        this.overtimeHours = overtimeHours;
     }
 
     //Returns time period in weeks
@@ -49,5 +56,9 @@ public class TimeCard {
     @Override
     public String toString(){
         return "Time Period (weeks): " + timePeriod + ", Hours Worked: " + hoursWorked + ", Overtime Hours: " + overtimeHours + " ";
+    }
+
+    public String getData(){
+        return timePeriod + " " + hoursWorked + " " + overtimeHours + " ";
     }
 }

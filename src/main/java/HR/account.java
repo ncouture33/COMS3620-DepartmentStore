@@ -1,6 +1,7 @@
 package HR;
+import Utils.Data;
 
-public class Account {
+public class Account implements Data {
     protected final String bank;
     protected final int routingNumber;
     protected final int accountNumber;
@@ -27,5 +28,9 @@ public class Account {
         // In a real implementation, this would interact with banking systems.
         // Here, we simply return the amount deposited for demonstration purposes.
         return amount;
+    }
+
+    public String getData(){
+        return bank + " " + routingNumber + " " + accountNumber + " ";
     }
 }

@@ -27,4 +27,12 @@ public class Salary extends BaseEmployee {
     public void resetTimeCard(){
         card = new TimeCard();
     }
+
+    public String toString(){
+        return "SALARY " + super.toString() + ", Salary: " + salary;
+    }
+
+    public String getData(){
+        return "SALARY " + super.toData() + salary + " ";
+    }
 }

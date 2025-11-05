@@ -1,6 +1,7 @@
 package HR;
+import Utils.Data;
 
-public class Paystub {
+public class Paystub implements Data{
     private final TimeCard card;
     private final double amount;
     private final String date;
@@ -21,5 +22,10 @@ public class Paystub {
 
     public String getDate() {
         return date;
+    }
+
+    @Override
+    public String getData() {
+        return card.getData() + " " + amount + " " + date;
     }
 }

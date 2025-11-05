@@ -1,12 +1,32 @@
 package SystemManager;
 
-import HR.*;
 
-import java.util.ArrayList;
+import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
         System.out.println("Department Management System is running...");
+        Scanner scanner = new Scanner(System.in);
+        while (true){
+            System.out.print("1: HR related actions\n");
+
+            String command = scanner.nextLine();
+
+            if (command.equals("1")){
+                HR.Util.runHR();
+                continue;
+            }
+
+            //More options go here
+
+            if (command.equals("exit")){
+                System.out.println("Exiting Department Management System.");
+                break;
+            }
+            else {
+                continue;
+            }
+        }
     }
 }
 
