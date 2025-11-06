@@ -27,6 +27,8 @@ public class Main {
                 continue;
             }
         }
+
+        scanner.close();
     }
 }
 
