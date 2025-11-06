@@ -33,6 +33,6 @@ public class Salary extends BaseEmployee {
     }
 
     public String getData(){
-        return "SALARY " + super.toData() + salary + " ";
+        return "SALARY " + super.getData() + salary + " ";
     }
 }

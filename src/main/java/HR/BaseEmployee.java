@@ -1,6 +1,8 @@
 package HR;
 
 import Utils.Data;
+import java.io.File;
+import java.util.Scanner;
 
 public abstract class BaseEmployee implements EmployeeActions, Data {
     protected int id;
@@ -77,7 +79,7 @@ public abstract class BaseEmployee implements EmployeeActions, Data {
     public void setSocial(int social) {
         this.social = social;
     }
-
+    
 
     public void setTimeCard(TimeCard card) {
         this.card = card;
@@ -88,11 +90,41 @@ public abstract class BaseEmployee implements EmployeeActions, Data {
         return card;
     }
 
+
+    public static synchronized int getNextEmployeeID(){
+        
+        int nextEmployeeID = 1;
+
+        try (Scanner reader = new Scanner(new File("employees.txt"))) {
+            int maxId = 0;
+            while (reader.hasNextLine()) {
+                String line = reader.nextLine().trim();
+                if (line.isEmpty()) continue;
+                try (Scanner lineScanner = new Scanner(line)) {
+                    if (!lineScanner.hasNext()) continue;
+                    lineScanner.next();
+                    if (lineScanner.hasNextInt()) {
+                        int id = lineScanner.nextInt();
+                        if (id > maxId) maxId = id;
+                    }
+                } catch (Exception e) {
+
+                }
+            }
+            nextEmployeeID = Math.max(1, maxId + 1);
+        } catch (Exception e) {
+            // File not found or unreadable
+            nextEmployeeID = 1;
+        }
+        
+        return nextEmployeeID++;
+    }
+
     public String toString(){
         return "ID: " + id + ", Name: " + fName + " " + lName + ", DOB: " + DOB + ", Social: " + social + ", TimeCard: [" + card.toString() + "]";
     }
 
-    public String toData(){
+    public String getData(){
         return id + " " + fName + " " + lName +  " " + DOB + " " + social + " " + card.getData() + " " + directDepositAccount.getData() + " ";
     }
 
