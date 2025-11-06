@@ -62,6 +62,8 @@ public class Util {
                 continue;
             }
         }
+
+        scanner.close();
     }
 
 }
