@@ -1,6 +1,7 @@
 package SystemManager;
 
 
+
 import java.util.Scanner;
 
 public class Main {
@@ -9,6 +10,7 @@ public class Main {
         Scanner scanner = new Scanner(System.in);
         while (true){
             System.out.print("1: HR related actions\n");
+            System.out.print("5: Inventory actions\n");
 
             String command = scanner.nextLine();
 
@@ -16,7 +18,10 @@ public class Main {
                 HR.Util.runHR();
                 continue;
             }
-
+            if (command.equals("5")){
+                inventory.Util.runInventory();
+                continue;
+            }
             //More options go here
 
             if (command.equals("exit")){
