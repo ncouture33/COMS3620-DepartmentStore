@@ -14,19 +14,22 @@ public class Util {
         Scanner scanner = new Scanner(System.in);
         while (true){
 
-            System.out.print("1: Onboard an employee\n" +
-                    "2: Offboard an employee\n" +
-                    "3: View all employees\n" +
-                    "4: View Upcoming Payroll\n" +
-                    "5: Execute Payroll\n" +
-                    "6: Modify a timecard\n" +
-                    "Type 'exit' to return to main menu.\n");
+            System.out.print(
+                "1: Onboard an employee\n" +
+                "2: Offboard an employee\n" +
+                "3: View all employees\n" +
+                "4: View Upcoming Payroll\n" +
+                "5: Execute Payroll\n" +
+                "6: Modify a timecard\n" +
+                "Type 'exit' to return to main menu.\n"
+            );
 
 
             String command = scanner.nextLine();
             if (command.equals("1")){
-                //todo
-                continue;
+                
+                System.out.println("You are onboarding an employee.")
+
             }
             else if (command.equals("2")){
                 //todo
