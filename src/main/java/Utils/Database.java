@@ -5,6 +5,7 @@ import HR.*;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -14,6 +15,40 @@ public class Database implements DatabaseWriter{
     public void writeEmployee(BaseEmployee data) {
         try(FileWriter fwEmployee = new FileWriter("employees.txt", true)){
             fwEmployee.write(data.getData() + "\n");
+            System.out.println("Successfully appended to the file.");
+        } catch (IOException e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void indicateEmployeeOffboarding(int empId, String date, String reasonForLeaving) {
+        try (Scanner myReader = new Scanner(new File("employees.txt"))) {
+            while (myReader.hasNextLine()) {
+                String data = myReader.nextLine();
+                BaseEmployee emp = parseEmployee(data);
+                if(emp.getID() == empId){
+                    try(FileWriter fwEmployee = new FileWriter("employeesInOffboardingProcess.txt", true)){
+                        OffboardingEmployee offemp = new OffboardingEmployee(empId, emp.getFName(), emp.getLName(), emp.getDOB(), emp.getSocial(), date, reasonForLeaving);
+                        fwEmployee.write(offemp.getData() + "\n");
+                        System.out.println("Successfully appended to the offboarding file.");
+                    } catch (IOException e) {
+                        System.out.println("An error occurred.");
+                        e.printStackTrace();
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        } 
+    }
+
+    @Override
+    public void writePriorEmployee(OffboardingEmployee emp, String propertyReturned){
+        try(FileWriter fwEmployee = new FileWriter("priorEmployees.txt", true)){
+            fwEmployee.write(emp.getData() + " " + propertyReturned + "\n");
             System.out.println("Successfully appended to the file.");
         } catch (IOException e) {
             System.out.println("An error occurred.");
@@ -47,6 +82,98 @@ public class Database implements DatabaseWriter{
         }
         return employees;
     }
+    @Override
+    public OffboardingEmployee getOffboardingEmployee(int empID) {
+        try (Scanner myReader = new Scanner(new File("employeesInOffboardingProcess.txt"))) {
+            while (myReader.hasNextLine()) {
+                String data = myReader.nextLine();
+                OffboardingEmployee emp = parseOffBoardEmployee(data);
+                if(emp.getID() == empID){
+                    return emp;
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        } 
+        return null;
+    }
+@Override
+public void removeOffboardingEmployee(int empID) {
+    File inputFile = new File("employeesInOffboardingProcess.txt");
+    File tempFile = new File("temp.txt");
+
+    try (
+        Scanner myReader = new Scanner(inputFile);
+        PrintWriter writer = new PrintWriter(tempFile);
+    ) {
+        while (myReader.hasNextLine()) {
+            String data = myReader.nextLine();
+            OffboardingEmployee emp = parseOffBoardEmployee(data);
+
+            // Only keep employees whose ID doesn't match
+            if (emp.getID() != empID) {
+                writer.println(data);
+            }
+        }
+    } catch (Exception e) {
+        System.out.println("An error occurred while removing employee.");
+        e.printStackTrace();
+        return;
+    }
+
+    // Replace original file with the new one
+    if (!inputFile.delete()) {
+        System.out.println("Could not delete original file.");
+        return;
+    }
+    if (!tempFile.renameTo(inputFile)) {
+        System.out.println("Could not rename temp file.");
+    }
+}
+@Override
+public void removeFromEmployee(int empID){
+    File inputFile = new File("employees.txt");
+    File tempFile = new File("temp.txt");
+
+    try (
+        Scanner myReader = new Scanner(inputFile);
+        PrintWriter writer = new PrintWriter(tempFile);
+    ) {
+        while (myReader.hasNextLine()) {
+            String data = myReader.nextLine().trim();
+            if (data.isEmpty()) continue;
+
+            BaseEmployee emp;
+            try {
+                emp = parseEmployee(data); //  parseEmployee for employees.txt
+            } catch (Exception e) {
+                System.out.println("Skipping malformed line: " + data);
+                continue;
+            }
+
+            // keep employees whose ID don't match
+            if (emp.getID() != empID) {
+                writer.println(data);
+            }
+        }
+    } catch (Exception e) {
+        System.out.println("An error occurred while removing employee.");
+        e.printStackTrace();
+        return;
+    }
+
+    // Replace original file with temp
+    if (!inputFile.delete()) {
+        System.out.println("Could not delete original file");
+        return;
+    }
+    if (!tempFile.renameTo(inputFile)) {
+        System.out.println("Could not rename temp file");
+    }
+}
+
+
 
     private BaseEmployee parseEmployee(String data){
         //Parsing logic here
@@ -87,6 +214,28 @@ public class Database implements DatabaseWriter{
         }
         return null;
     }
+
+    private OffboardingEmployee parseOffBoardEmployee(String data){
+        //Parsing logic here
+        Scanner tempScanner = new Scanner(data);
+        int id = tempScanner.nextInt();
+        String fName = tempScanner.next();
+        String lName = tempScanner.next();
+        int DOB = tempScanner.nextInt();
+        int social = tempScanner.nextInt();
+        String date = tempScanner.next();
+        String reasonForLeaving = "";
+        if (tempScanner.hasNextLine()) {
+            reasonForLeaving = tempScanner.nextLine().trim();
+        }
+        
+
+        OffboardingEmployee emp = new OffboardingEmployee(id, fName, lName, DOB, social, date, reasonForLeaving);
+        tempScanner.close();
+        return emp;
+    }
+
+
 
 
     private Account parseAccount(String data){
