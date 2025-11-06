@@ -41,6 +41,6 @@ public class Hourly extends BaseEmployee{
         return "HOURLY, " + super.toString() + ", Hourly Rate: " + hourlyRate + ", Overtime Rate: " + overtimeRate;
     }
     public String getData(){
-        return "HOURLY " + super.toData() + hourlyRate + " " + overtimeRate + " ";
+        return "HOURLY " + super.getData() + hourlyRate + " " + overtimeRate + " ";
     }
 }

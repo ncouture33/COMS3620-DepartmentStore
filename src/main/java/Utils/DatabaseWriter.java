@@ -4,7 +4,6 @@ import HR.BaseEmployee;
 import HR.Payroll;
 import HR.Paystub;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public interface DatabaseWriter {

@@ -6,7 +6,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Scanner;
 
 public class Database implements DatabaseWriter{
@@ -14,7 +13,7 @@ public class Database implements DatabaseWriter{
     @Override
     public void writeEmployee(BaseEmployee data) {
         try(FileWriter fwEmployee = new FileWriter("employees.txt", true)){
-            fwEmployee.write(data.toData() + "\n");
+            fwEmployee.write(data.getData() + "\n");
             System.out.println("Successfully appended to the file.");
         } catch (IOException e) {
             System.out.println("An error occurred.");
@@ -74,6 +73,7 @@ public class Database implements DatabaseWriter{
             emp.setAccount(account);
             card = new TimeCard(timePeriod, hoursWorked, overtimeHours);
             emp.setTimeCard(card);
+            tempScanner.close();
             return emp;
         } else if (empType.equals("HOURLY")){
             double hourlyRate = tempScanner.nextDouble();
@@ -82,6 +82,7 @@ public class Database implements DatabaseWriter{
             emp.setAccount(account);
             card = new TimeCard(timePeriod, hoursWorked, overtimeHours);
             emp.setTimeCard(card);
+            tempScanner.close();
             return emp;
         }
         return null;
@@ -93,6 +94,7 @@ public class Database implements DatabaseWriter{
         String bankName = tempScanner.next();
         int routingNum = tempScanner.nextInt();
         int accountNum = tempScanner.nextInt();
+        tempScanner.close();
         return new Account(bankName, routingNum, accountNum);
     }
 
