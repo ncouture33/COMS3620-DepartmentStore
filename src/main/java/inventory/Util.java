@@ -1,16 +1,16 @@
 package inventory;
 
-import inventory.io.InventoryFileStore;
-import inventory.service.ReceivingService;
-
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+import inventory.io.InventoryFileStore;
+import inventory.service.ReceivingService;
+
 public class Util {
-    public static void runInventory() {
-        Scanner sc = new Scanner(System.in);
+    public static void runInventory(Scanner passedScanner) {
+        Scanner sc = passedScanner;
         while (true) {
             System.out.print("""
                     Inventory Menu

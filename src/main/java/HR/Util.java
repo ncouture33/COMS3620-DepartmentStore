@@ -8,11 +8,11 @@ import java.util.Scanner;
 
 public class Util {
 
-    public static void runHR(){
+    public static void runHR(Scanner passedScanner){
         
         DatabaseWriter database = new Database();
         System.out.println("HR console running...");
-        Scanner scanner = new Scanner(System.in);
+        Scanner scanner = passedScanner;
 
         while (true){
 
@@ -128,13 +128,12 @@ public class Util {
 
             //More options go here
 
-            if (command.equals("exit")){
+            else if (command.equals("exit")){
                 System.out.println("Exiting HR System.");
                 break;
             }
         }
 
-        scanner.close();
     }
 
 }
