@@ -18,7 +18,6 @@ public class StorePOS extends AbstractPOSSystem{
             System.out.println(item.getName());
         }
         System.out.println("Total Paid: $" + total);
-
     }
     
 }
