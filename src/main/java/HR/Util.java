@@ -99,7 +99,6 @@ public class Util {
                 database.removeFromEmployee(empID);
                 if(hasOffboarded == 1){
                     //removed from offboarding bc its completed its tasks
-                    database.removeOffboardingEmployee(empID);
                     System.out.println("Enter 1 if employee returned company property, otherwise enter 0");
                     int propertyReturned = scanner.nextInt();
                     if(propertyReturned == 1){
@@ -108,6 +107,8 @@ public class Util {
                     else{
                         database.writePriorEmployee(database.getOffboardingEmployee(empID), "Property has not been returned");
                     }
+                    database.removeOffboardingEmployee(empID);
+
                 }
             }
             else if (command.equals("3")){
