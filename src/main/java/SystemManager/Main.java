@@ -16,7 +16,10 @@ public class Main {
                 HR.Util.runHR();
                 continue;
             }
-
+            else if (command.equals("2")){
+                StoreFloor.Util.runSales(scanner);
+                continue;
+            }
             //More options go here
 
             if (command.equals("exit")){
