@@ -11,6 +11,7 @@ public class Main {
         
         while (true){
             System.out.print("1: HR related actions\n");
+            System.out.print("2: Store Floor actions\n");
             System.out.print("5: Inventory actions\n");
             
             String command = scanner.nextLine();
@@ -20,6 +21,8 @@ public class Main {
             }
             else if (command.equals("5")){
                 inventory.Util.runInventory(scanner);
+            }else if(command.equals("2")){
+                StoreFloor.Util.runSales(scanner);
             }
             //More options go here
 
