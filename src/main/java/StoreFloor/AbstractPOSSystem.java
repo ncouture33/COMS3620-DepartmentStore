@@ -5,6 +5,9 @@ import Utils.Database;
 import java.util.ArrayList;
 import java.util.List;
 
+import Utils.Database;
+import Utils.DatabaseWriter;
+
 public abstract class AbstractPOSSystem implements POSComponent{
     protected List<Item> currentSale = new ArrayList<>();
     protected double total;
@@ -32,7 +35,7 @@ public abstract class AbstractPOSSystem implements POSComponent{
     }
 
     @Override
-    public boolean finalizeSale(PaymentMethod payment) {
+    public boolean finalizeSale(PaymentMethod payment, Customer customer) {
         System.out.println("Processing payment method...");
 
         // NEW: now returns amount paid
@@ -44,6 +47,14 @@ public abstract class AbstractPOSSystem implements POSComponent{
         }
 
         totalPaid = paid;
+        // earn 1 point for every $1 spent
+        int pointsEarned = (int) paid; 
+        if (customer != null && customer.isRewardsMember()) {
+            customer.getRewards().addPoints(pointsEarned);
+            System.out.println("Added " + pointsEarned + " points to customer " + customer.getName() + ". Total points: " + customer.getRewards().getPoints());
+            DatabaseWriter database = new Database();
+            database.updateCustomerRewardsPoints(customer.getRewards());
+        }
         changeReturned = (paid > total) ? (paid - total) : 0;
 
         printReceipt();
