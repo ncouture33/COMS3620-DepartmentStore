@@ -4,10 +4,12 @@ import java.util.ArrayList;
 
 import HR.BaseEmployee;
 import HR.OffboardingEmployee;
+import HR.Orientation.OrientationTask;
 import HR.Payroll;
 import HR.Paystub;
 import HR.Schedule;
 import HR.Timeoff;
+import StoreOperations.ClockTime;
 import StoreFloor.Customer;
 import StoreFloor.Rewards;
 
@@ -17,6 +19,14 @@ public interface DatabaseWriter {
     public void indicateEmployeeOffboarding(int empId, String date, String reasonForLeaving);
 
     public void writePriorEmployee(OffboardingEmployee emp, String propertyReturned);
+
+    public void writeClockedInEmployee(BaseEmployee emp, String time, int date);
+
+    public void writeTimeHistory(ClockTime emp);
+
+    public ArrayList<ClockTime> getClockedEmployees();
+
+    public boolean clockOutEmployee(ClockTime emp);
 
     public ArrayList<BaseEmployee> getEmployees();
 
@@ -31,7 +41,7 @@ public interface DatabaseWriter {
     public Payroll getPayroll();
 
     public void writePaystubs(ArrayList<Paystub> list, String date);
-   
+
     public ArrayList<BaseEmployee> getAllEmployeesExcluding(ArrayList<Integer> excludeList);
 
     public ArrayList<Timeoff> getTimeoffs();
@@ -41,6 +51,10 @@ public interface DatabaseWriter {
     public int getNextScheduleID();
 
     public void writeSchedule(Schedule schedule);
+
+    public void addOrientationTask(int empId, String taskName, String taskDescription);
+    public ArrayList<OrientationTask> getOrientationTasks(int empId);
+    public boolean completeOrientationTask(int empId, String taskName);
 
     public void addCustomerToRewardsProgram(Customer customer);
 

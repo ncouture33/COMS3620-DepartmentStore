@@ -4,13 +4,13 @@ public class StorePOS extends AbstractPOSSystem {
 
     @Override
     public void applyAwards(Customer customer) {
-        if (customer.isRewardsMember()) {
-            //give customer points
-            //add discount logic here
-            System.out.println("Applied rewards for customer: " + customer.getName());
-        } else {
-            System.out.println("Customer is not a rewards member");
-        }
+        // if (customer.isRewardsMember()) {
+        //     //give customer points
+        //     //add discount logic here
+        //     System.out.println("Applied rewards for customer: " + customer.getName());
+        // } else {
+        //     System.out.println("Customer is not a rewards member");
+        // }
     }
 
     @Override
