@@ -6,10 +6,15 @@ public class CashPayment implements PaymentMethod {
         this.amountGiven = amountGiven;
     }
     @Override
-    public boolean processPayment( double amount){
-        if(amountGiven >= amount){
-            return true;
+    public double processPayment(double totalAmount) {
+        if (amountGiven < totalAmount) {
+            System.out.println("Not enough cash provided.");
+            return -1; // payment failed
         }
-        return false;
+
+        double change = amountGiven - totalAmount;
+        System.out.println("Change Due: $" + String.format("%.2f", change));
+
+        return amountGiven; // total paid
     }
 }

@@ -3,8 +3,11 @@ package HR;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+import HR.Orientation.BasicOrientationTask;
+import HR.Orientation.NewEmployee;
 import Utils.Database;
 import Utils.DatabaseWriter;
+
 
 public class Util {
 
@@ -55,7 +58,6 @@ public class Util {
 
                 // Create employee bank account
                 Account account = new Account(bankName, routingNum, accountNum);
-
                 // Create employee based on type
                 if (empType.equals("S")) {
                     System.out.println("Enter employee salary: ");
@@ -171,7 +173,52 @@ public class Util {
                 ArrayList<Paystub> list = pr.payEmployees(date);
                 database.writePaystubs(list, date);
             }
+            else if (command.equals("6")){
+                System.out.println("Enter employee first name: ");
+                String fName = scanner.nextLine();
+                System.out.println("Enter employee last name: ");
+                String lName = scanner.nextLine();
+                System.out.println("Enter employee DOB (YYYYMMDD): ");
+                int DOB = Integer.parseInt(scanner.nextLine());
+                System.out.println("Enter employee Social Security Number (XXXXXXXXX): ");
+                int social = Integer.parseInt(scanner.nextLine());
 
+                // Get account info
+                System.out.println("Enter bank name for direct deposit:");
+                String bankName = scanner.nextLine();
+                System.out.println("Enter routing number: ");
+                int routingNum = Integer.parseInt(scanner.nextLine());
+                System.out.println("Enter account number: ");
+                int accountNum = Integer.parseInt(scanner.nextLine());
+
+                // Create employee bank account
+                Account account = new Account(bankName, routingNum, accountNum);
+                NewEmployee employee = new NewEmployee (BaseEmployee.getNextEmployeeID(), fName, lName, DOB, social);
+                employee.setAccount(account);
+                OrientationSystem os = new OrientationSystem();
+
+            // Assign required tasks to the employee first
+            os.assignRequiredTasks(employee);
+
+            // Ask the user to enter the task details
+            System.out.println("Enter the name of the task to add and complete:");
+            String taskName = scanner.nextLine();
+            System.out.println("Enter the description of the task:");
+            String taskDesc = scanner.nextLine();
+
+            // Create and add the task to the employee
+            BasicOrientationTask task = new BasicOrientationTask(taskName, taskDesc);
+            employee.addOrientationTask(task);
+
+            // Start the orientation
+            employee.startOrientation();
+
+            // Complete the task
+            employee.completeOrientationTask(taskName);
+
+            // Notify manager and HR
+            os.notifyManagerAndHR(employee);
+            }
             //More options go here
 
             else if (command.equals("exit")){
