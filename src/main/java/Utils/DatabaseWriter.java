@@ -47,4 +47,6 @@ public interface DatabaseWriter {
     public Rewards getCustomerRewards(String phoneNumber);
 
     public int generateCustomerRewardsID();
+
+    public void updateCustomerRewardsPoints(Rewards rewards);
 }

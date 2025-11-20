@@ -23,10 +23,16 @@ public class Util {
         if (member){
             System.out.print("Enter phone number: ");
             String phoneNumber = scanner.nextLine();
-            customer = new Customer(name, true);
+            
             Rewards rewards = database.getCustomerRewards(phoneNumber);
-            customer.setRewards(rewards);
-            System.out.println("Rewards ID " + rewards.getId() + " linked to customer " + name + "with phone number " + phoneNumber);
+            if (rewards == null){
+                System.out.println("No rewards account found for phone number " + phoneNumber);
+            }
+            else{
+                customer = new Customer(name, true);
+                customer.setRewards(rewards);
+                System.out.println("Rewards ID " + rewards.getId() + " linked to customer " + name + " with phone number " + phoneNumber);
+            }  
         }
         else{
             System.out.println("Would you like to join the rewards program?");
@@ -78,11 +84,6 @@ public class Util {
             }
         }
         
-        if (customer != null) {
-            System.out.println("Applying rewards for customer: " + customer.getName());
-            cashier.applyAwards(customer, pos);
-        }
-        
         System.out.print("Pay with (cash/card): ");
         String method = scanner.nextLine();
 
@@ -90,10 +91,10 @@ public class Util {
             System.out.print("Enter cash amount: ");
             double cash = Double.parseDouble(scanner.nextLine());
             PaymentMethod payment = new CashPayment(cash);
-            cashier.completeSale(pos, payment);
+            cashier.completeSale(pos, payment, customer);
         } else {
             PaymentMethod payment = new CardPayment();
-            cashier.completeSale(pos, payment);
+            cashier.completeSale(pos, payment, customer);
         }
 
         System.out.println("Transaction complete.\n");

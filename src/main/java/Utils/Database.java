@@ -424,11 +424,10 @@ public void removeFromEmployee(int empID){
             while (myReader.hasNextLine()) {
                 String data = myReader.nextLine();
                 Scanner tempScanner = new Scanner(data);
-                String name = tempScanner.next();
-                String phone = tempScanner.next();
-                String email = tempScanner.next();
                 int id = tempScanner.nextInt();
                 int points = tempScanner.nextInt();
+                String email = tempScanner.next();
+                String phone = tempScanner.next();
                 Rewards reward = new Rewards(id, points, email, phone);
                 rewards.add(reward);
                 tempScanner.close();
@@ -439,6 +438,48 @@ public void removeFromEmployee(int empID){
         }
         return rewards;
     }
+
+    public void updateCustomerRewardsPoints(Rewards rewards) {
+        File inputFile = new File("rewards.txt");
+        File tempFile = new File("temp_rewards.txt");
+
+        try (
+            Scanner myReader = new Scanner(inputFile);
+            PrintWriter writer = new PrintWriter(tempFile);
+        ) {
+            while (myReader.hasNextLine()) {
+                String data = myReader.nextLine();
+                Scanner tempScanner = new Scanner(data);
+                int id = tempScanner.nextInt();
+                int points = tempScanner.nextInt();
+                String email = tempScanner.next();
+                String phone = tempScanner.next();
+                tempScanner.close();
+
+                // Update points if ID matches
+                if (id == rewards.getId()) {
+                    points = rewards.getPoints();
+                }
+
+                // Write updated or original line to temp file
+                writer.println(id + " " + points + " " + email + " " + phone);
+            }
+        } catch (Exception e) {
+            System.out.println("An error occurred while updating rewards.");
+            e.printStackTrace();
+            return;
+        }
+
+        // Replace original file with the updated one
+        if (!inputFile.delete()) {
+            System.out.println("Could not delete original rewards file.");
+            return;
+        }
+        if (!tempFile.renameTo(inputFile)) {
+            System.out.println("Could not rename temp rewards file.");
+        }
+    }
+
     @Override
     public Payroll getPayroll() {
         ArrayList<BaseEmployee> employees = new ArrayList<>();

@@ -1,4 +1,5 @@
 package StoreFloor;
+import Utils.Data;
 public class Rewards implements Data{
     private int id;
     private int points;
