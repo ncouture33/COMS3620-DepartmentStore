@@ -6,8 +6,12 @@ public class Util {
     public static void runSales(Scanner scanner) {
         System.out.println("\n--- Point of Sale ---");
 
-        StorePOS pos = new StorePOS();
-        Cashier cashier = new Cashier(0,"John", "Doe", 03,1234567890,12.0,18);
+        // Require an active, logged-in POS. If none, prompt user to sign in via Store Operations.
+        StorePOS pos = StoreOperations.Session.getCurrentPOS();
+        if (pos == null || pos.getLoggedInEmployee() == null) {
+            System.out.println("No employee is currently logged in to a register. Please sign in via Store Operation Actions before using the register.");
+            return;
+        }
 
         System.out.print("Enter customer name: ");
         String name = scanner.nextLine();
@@ -27,27 +31,27 @@ public class Util {
         
             double price = 0;
         
-            if (itemName.equalsIgnoreCase("giftcard")) {
-                System.out.print("Enter gift card number: ");
-                String cardNumber = scanner.nextLine();
-                System.out.print("Enter gift card amount: ");
-                price = Double.parseDouble(scanner.nextLine());
-                GiftCard giftCard = new GiftCard( cardNumber);
-                giftCard.loadAmount(price);
-                Item giftCardItem = new Item("Gift Card", price);
-                cashier.ringUpItem(giftCardItem, pos);
-                System.out.println(giftCard.toString());
-                continue;
-            } else {
-                System.out.print("Enter price: ");
-                price = Double.parseDouble(scanner.nextLine());
-                Item item = new Item(itemName, price);
-                cashier.ringUpItem(item, pos);
-            }
+                if (itemName.equalsIgnoreCase("giftcard")) {
+                    System.out.print("Enter gift card number: ");
+                    String cardNumber = scanner.nextLine();
+                    System.out.print("Enter gift card amount: ");
+                    price = Double.parseDouble(scanner.nextLine());
+                    GiftCard giftCard = new GiftCard(cardNumber);
+                    giftCard.loadAmount(price);
+                    Item giftCardItem = new Item("Gift Card", price);
+                    pos.scanItem(giftCardItem);
+                    System.out.println(giftCard.toString());
+                    continue;
+                } else {
+                    System.out.print("Enter price: ");
+                    price = Double.parseDouble(scanner.nextLine());
+                    Item item = new Item(itemName, price);
+                    // Use POS API directly (scanItem) — the logged-in employee is tracked by the POS
+                    pos.scanItem(item);
+                }
         }
         
-
-        cashier.applyAwards(customer, pos);
+        pos.applyAwards(customer);
 
         System.out.print("Pay with (cash/card): ");
         String method = scanner.nextLine();
@@ -56,10 +60,10 @@ public class Util {
             System.out.print("Enter cash amount: ");
             double cash = Double.parseDouble(scanner.nextLine());
             PaymentMethod payment = new CashPayment(cash);
-            cashier.completeSale(pos, payment);
+            pos.finalizeSale(payment);
         } else {
             PaymentMethod payment = new CardPayment();
-            cashier.completeSale(pos, payment);
+            pos.finalizeSale(payment);
         }
 
         System.out.println("Transaction complete.\n");
