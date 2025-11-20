@@ -35,7 +35,7 @@ public class Util {
             }  
         }
         else{
-            System.out.println("Would you like to join the rewards program?");
+            System.out.print("Would you like to join the rewards program? (yes/no): ");
             boolean answer = scanner.nextLine().equalsIgnoreCase("yes");
             if (answer){
                 //add the customer to the rewards program

@@ -41,7 +41,8 @@ public abstract class AbstractPOSSystem implements POSComponent{
         }
 
         totalPaid = paid;
-        int pointsEarned = (int) paid; // Earn 1 point for every $10 spent
+        // earn 1 point for every $1 spent
+        int pointsEarned = (int) paid; 
         if (customer != null && customer.isRewardsMember()) {
             customer.getRewards().addPoints(pointsEarned);
             System.out.println("Added " + pointsEarned + " points to customer " + customer.getName() + ". Total points: " + customer.getRewards().getPoints());
