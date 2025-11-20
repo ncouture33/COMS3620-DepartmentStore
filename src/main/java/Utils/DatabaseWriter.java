@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import HR.BaseEmployee;
 import HR.OffboardingEmployee;
+import HR.Orientation.OrientationTask;
 import HR.Payroll;
 import HR.Paystub;
 import HR.Schedule;
@@ -50,6 +51,10 @@ public interface DatabaseWriter {
     public int getNextScheduleID();
 
     public void writeSchedule(Schedule schedule);
+
+    public void addOrientationTask(int empId, String taskName, String taskDescription);
+    public ArrayList<OrientationTask> getOrientationTasks(int empId);
+    public boolean completeOrientationTask(int empId, String taskName);
 
     public void addCustomerToRewardsProgram(Customer customer);
 
