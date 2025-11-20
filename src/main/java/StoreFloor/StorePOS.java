@@ -1,31 +1,41 @@
 package StoreFloor;
 
+public class StorePOS extends AbstractPOSSystem {
 
-
-public class StorePOS extends AbstractPOSSystem{
     @Override
-    public void applyAwards(Customer customer){
-        if(customer.isRewardsMember()){
-            // DO SOMETHING 
-        }else{
+    public void applyAwards(Customer customer) {
+        if (customer.isRewardsMember()) {
+            // future rewards logic
+        } else {
             System.out.println("Customer is not a rewards member");
         }
     }
-    @Override
-    protected void printReceipt(){
-        System.out.println("\n--- RECEIPT---");
-        for(Item item : currentSale){
-            System.out.println(item.getName());
-        }
-        System.out.println("Total Paid: $" + total);
 
+    @Override
+    protected void printReceipt() {
+        System.out.println("\n--- RECEIPT ---");
+
+        for (Item item : currentSale) {
+            System.out.println(item.getName() + " - $" + String.format("%.2f", item.getPrice()));
+        }
+
+        System.out.println("----------------------------");
+
+        System.out.println("Transaction Total: $" + String.format("%.2f", total));
+        System.out.println("Total Paid:        $" + String.format("%.2f", totalPaid));
+
+        if (changeReturned > 0) {
+            System.out.println("Change Returned:   $" + String.format("%.2f", changeReturned));
+        }
+
+        System.out.println("----------------------------\n");
     }
-    // Gift Card Fucntionality
-    public GiftCard createGiftCard(String cardNumber, double amount){
+
+    // Gift Card purchase (optional)
+    public GiftCard createGiftCard(String cardNumber, double amount) {
         GiftCard giftCard = new GiftCard(cardNumber);
         giftCard.loadAmount(amount);
         total += amount;
         return giftCard;
     }
-    
 }
