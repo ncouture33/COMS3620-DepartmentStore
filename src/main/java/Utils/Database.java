@@ -1,9 +1,15 @@
 package Utils;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -18,12 +24,13 @@ import HR.Schedule;
 import HR.Shift;
 import HR.TimeCard;
 import HR.Timeoff;
+import StoreOperations.ClockTime;
 
-public class Database implements DatabaseWriter{
+public class Database implements DatabaseWriter {
 
     @Override
     public void writeEmployee(BaseEmployee data) {
-        try(FileWriter fwEmployee = new FileWriter("employees.txt", true)){
+        try (FileWriter fwEmployee = new FileWriter("employees.txt", true)) {
             fwEmployee.write(data.getData() + "\n");
             System.out.println("Successfully appended to the file.");
             writeRegisterCredentials(data);
@@ -37,33 +44,36 @@ public class Database implements DatabaseWriter{
      * Append credentials for an employee to registerEmployees.txt in the format:
      * id username salt hash pin
      */
-    public void writeRegisterCredentials(BaseEmployee data){
+    public void writeRegisterCredentials(BaseEmployee data) {
         File credFile = new File("registerEmployees.txt");
         java.util.ArrayList<String> keep = new java.util.ArrayList<>();
         String newUsername = data.getUsername() == null ? "" : data.getUsername();
         int newId = data.getID();
 
-        // read existing lines and keep those that do not belong to this employee id or username
-        if (credFile.exists()){
-            try (Scanner reader = new Scanner(credFile)){
-                while (reader.hasNextLine()){
+        // read existing lines and keep those that do not belong to this employee id or
+        // username
+        if (credFile.exists()) {
+            try (Scanner reader = new Scanner(credFile)) {
+                while (reader.hasNextLine()) {
                     String line = reader.nextLine().trim();
-                    if(line.isEmpty()) continue;
-                    try (Scanner s = new Scanner(line)){
+                    if (line.isEmpty())
+                        continue;
+                    try (Scanner s = new Scanner(line)) {
                         int id = s.nextInt();
                         String username = s.hasNext() ? s.next() : "";
                         // skip entries matching this id or username
-                        if(id == newId) continue;
-                        if(!username.isEmpty() && username.equals(newUsername)) continue;
+                        if (id == newId)
+                            continue;
+                        if (!username.isEmpty() && username.equals(newUsername))
+                            continue;
                         keep.add(line);
-                    } catch (Exception ex){
-                        
+                    } catch (Exception ex) {
+
                         // if malformed, keep the line to avoid data loss
                         keep.add(line);
                     }
                 }
-            } 
-            catch (Exception e){
+            } catch (Exception e) {
                 // if reading fails, proceed to overwrite by appending only the new entry
             }
         }
@@ -76,8 +86,9 @@ public class Database implements DatabaseWriter{
         String newLine = data.getID() + " " + username + " " + salt + " " + hash + " " + pin;
 
         // write back kept lines + the new line
-        try (FileWriter fw = new FileWriter(credFile, false)){
-            for (String l : keep) fw.write(l + "\n");
+        try (FileWriter fw = new FileWriter(credFile, false)) {
+            for (String l : keep)
+                fw.write(l + "\n");
             fw.write(newLine + "\n");
             System.out.println("Successfully wrote credentials to registerEmployees.txt");
         } catch (IOException e) {
@@ -92,9 +103,10 @@ public class Database implements DatabaseWriter{
             while (myReader.hasNextLine()) {
                 String data = myReader.nextLine();
                 BaseEmployee emp = parseEmployee(data);
-                if(emp.getID() == empId){
-                    try(FileWriter fwEmployee = new FileWriter("employeesInOffboardingProcess.txt", true)){
-                        OffboardingEmployee offemp = new OffboardingEmployee(empId, emp.getFName(), emp.getLName(), emp.getDOB(), emp.getSocial(), date, reasonForLeaving);
+                if (emp.getID() == empId) {
+                    try (FileWriter fwEmployee = new FileWriter("employeesInOffboardingProcess.txt", true)) {
+                        OffboardingEmployee offemp = new OffboardingEmployee(empId, emp.getFName(), emp.getLName(),
+                                emp.getDOB(), emp.getSocial(), date, reasonForLeaving);
                         fwEmployee.write(offemp.getData() + "\n");
                         System.out.println("Successfully appended to the offboarding file.");
                     } catch (IOException e) {
@@ -106,12 +118,12 @@ public class Database implements DatabaseWriter{
         } catch (Exception e) {
             System.out.println("An error occurred.");
             e.printStackTrace();
-        } 
+        }
     }
 
     @Override
-    public void writePriorEmployee(OffboardingEmployee emp, String propertyReturned){
-        try(FileWriter fwEmployee = new FileWriter("priorEmployees.txt", true)){
+    public void writePriorEmployee(OffboardingEmployee emp, String propertyReturned) {
+        try (FileWriter fwEmployee = new FileWriter("priorEmployees.txt", true)) {
             fwEmployee.write(emp.getData() + " " + propertyReturned + "\n");
             System.out.println("Successfully appended to the file.");
         } catch (IOException e) {
@@ -120,9 +132,9 @@ public class Database implements DatabaseWriter{
         }
     }
 
-    public void writePaystubs(ArrayList<Paystub> list, String date){
+    public void writePaystubs(ArrayList<Paystub> list, String date) {
         String fileName = "paystubs-" + date + ".txt";
-        try(FileWriter fwEmployee = new FileWriter("paystubs.txt", true)){
+        try (FileWriter fwEmployee = new FileWriter("paystubs.txt", true)) {
             for (Paystub data : list)
                 fwEmployee.write(data.getData() + "\n");
             System.out.println("Successfully appended to the file.");
@@ -144,22 +156,24 @@ public class Database implements DatabaseWriter{
             System.out.println("An error occurred.");
             e.printStackTrace();
         }
-        
-        // Attempt to load stored credentials from registerEmployees.txt and attach them to parsed employees
+
+        // Attempt to load stored credentials from registerEmployees.txt and attach them
+        // to parsed employees
         java.util.ArrayList<String[]> creds = new java.util.ArrayList<>();
         try (Scanner credReader = new Scanner(new File("registerEmployees.txt"))) {
             while (credReader.hasNextLine()) {
                 String line = credReader.nextLine().trim();
-                
-                if (line.isEmpty()) continue;
-                
+
+                if (line.isEmpty())
+                    continue;
+
                 try (Scanner s = new Scanner(line)) {
                     int id = s.nextInt();
                     String username = s.hasNext() ? s.next() : "";
                     String salt = s.hasNext() ? s.next() : "";
                     String hash = s.hasNext() ? s.next() : "";
                     String pin = s.hasNext() ? s.next() : "";
-                    creds.add(new String[]{String.valueOf(id), username, salt, hash, pin});
+                    creds.add(new String[] { String.valueOf(id), username, salt, hash, pin });
                 } catch (Exception ex) {
                     // skip malformed credential lines
                 }
@@ -182,109 +196,146 @@ public class Database implements DatabaseWriter{
                 }
             }
             if (c != null) {
-                if (c.length > 1 && c[1] != null && !c[1].isEmpty()) emp.setUsername(c[1]);
-                if (c.length > 3 && c[2] != null && !c[2].isEmpty() && c[3] != null && !c[3].isEmpty()) emp.setStoredPassword(c[2], c[3]);
-                if (c.length > 4 && c[4] != null && !c[4].isEmpty()) emp.setPin(c[4]);
+                if (c.length > 1 && c[1] != null && !c[1].isEmpty())
+                    emp.setUsername(c[1]);
+                if (c.length > 3 && c[2] != null && !c[2].isEmpty() && c[3] != null && !c[3].isEmpty())
+                    emp.setStoredPassword(c[2], c[3]);
+                if (c.length > 4 && c[4] != null && !c[4].isEmpty())
+                    emp.setPin(c[4]);
             }
         }
 
         return employees;
     }
+
+    @Override
+    public ArrayList<ClockTime> getClockedEmployees() {
+        ArrayList<ClockTime> clockedEmployees = new ArrayList<>();
+
+        try (Scanner myReader = new Scanner(new File("clockedInEmployees.txt"))) {
+            while (myReader.hasNextLine()) {
+                String data = myReader.nextLine();
+                ClockTime ct = parseClockTime(data);
+                if (ct != null) {
+                    clockedEmployees.add(ct);
+                }
+            }
+
+        } catch (IOException e) {
+            System.out.println("Error reading clocked-in employees");
+            e.printStackTrace();
+        }
+        return clockedEmployees;
+    }
+
+    private ClockTime parseClockTime(String data) {
+        String[] parts = data.trim().split("\\s+");
+        if (parts.length < 3) {
+            System.out.println("Invalid line: " + data);
+            return null;
+        }
+
+        int social = Integer.parseInt(parts[0]);
+        int date = Integer.parseInt(parts[1]);
+        String clockInTime = parts[2];
+
+        return new ClockTime(social, date, clockInTime);
+    }
+
     @Override
     public OffboardingEmployee getOffboardingEmployee(int empID) {
         try (Scanner myReader = new Scanner(new File("employeesInOffboardingProcess.txt"))) {
             while (myReader.hasNextLine()) {
                 String data = myReader.nextLine();
                 OffboardingEmployee emp = parseOffBoardEmployee(data);
-                if(emp.getID() == empID){
+                if (emp.getID() == empID) {
                     return emp;
                 }
             }
         } catch (Exception e) {
             System.out.println("An error occurred.");
             e.printStackTrace();
-        } 
+        }
         return null;
     }
-@Override
-public void removeOffboardingEmployee(int empID) {
-    File inputFile = new File("employeesInOffboardingProcess.txt");
-    File tempFile = new File("temp.txt");
 
-    try (
-        Scanner myReader = new Scanner(inputFile);
-        PrintWriter writer = new PrintWriter(tempFile);
-    ) {
-        while (myReader.hasNextLine()) {
-            String data = myReader.nextLine();
-            OffboardingEmployee emp = parseOffBoardEmployee(data);
+    @Override
+    public void removeOffboardingEmployee(int empID) {
+        File inputFile = new File("employeesInOffboardingProcess.txt");
+        File tempFile = new File("temp.txt");
 
-            // Only keep employees whose ID doesn't match
-            if (emp.getID() != empID) {
-                writer.println(data);
+        try (
+                Scanner myReader = new Scanner(inputFile);
+                PrintWriter writer = new PrintWriter(tempFile);) {
+            while (myReader.hasNextLine()) {
+                String data = myReader.nextLine();
+                OffboardingEmployee emp = parseOffBoardEmployee(data);
+
+                // Only keep employees whose ID doesn't match
+                if (emp.getID() != empID) {
+                    writer.println(data);
+                }
             }
+        } catch (Exception e) {
+            System.out.println("An error occurred while removing employee.");
+            e.printStackTrace();
+            return;
         }
-    } catch (Exception e) {
-        System.out.println("An error occurred while removing employee.");
-        e.printStackTrace();
-        return;
-    }
 
-    // Replace original file with the new one
-    if (!inputFile.delete()) {
-        System.out.println("Could not delete original file.");
-        return;
-    }
-    if (!tempFile.renameTo(inputFile)) {
-        System.out.println("Could not rename temp file.");
-    }
-}
-@Override
-public void removeFromEmployee(int empID){
-    File inputFile = new File("employees.txt");
-    File tempFile = new File("temp.txt");
-
-    try (
-        Scanner myReader = new Scanner(inputFile);
-        PrintWriter writer = new PrintWriter(tempFile);
-    ) {
-        while (myReader.hasNextLine()) {
-            String data = myReader.nextLine().trim();
-            if (data.isEmpty()) continue;
-
-            BaseEmployee emp;
-            try {
-                emp = parseEmployee(data); //  parseEmployee for employees.txt
-            } catch (Exception e) {
-                System.out.println("Skipping malformed line: " + data);
-                continue;
-            }
-
-            // keep employees whose ID don't match
-            if (emp.getID() != empID) {
-                writer.println(data);
-            }
+        // Replace original file with the new one
+        if (!inputFile.delete()) {
+            System.out.println("Could not delete original file.");
+            return;
         }
-    } catch (Exception e) {
-        System.out.println("An error occurred while removing employee.");
-        e.printStackTrace();
-        return;
+        if (!tempFile.renameTo(inputFile)) {
+            System.out.println("Could not rename temp file.");
+        }
     }
 
-    // Replace original file with temp
-    if (!inputFile.delete()) {
-        System.out.println("Could not delete original file");
-        return;
+    @Override
+    public void removeFromEmployee(int empID) {
+        File inputFile = new File("employees.txt");
+        File tempFile = new File("temp.txt");
+
+        try (
+                Scanner myReader = new Scanner(inputFile);
+                PrintWriter writer = new PrintWriter(tempFile);) {
+            while (myReader.hasNextLine()) {
+                String data = myReader.nextLine().trim();
+                if (data.isEmpty())
+                    continue;
+
+                BaseEmployee emp;
+                try {
+                    emp = parseEmployee(data); // parseEmployee for employees.txt
+                } catch (Exception e) {
+                    System.out.println("Skipping malformed line: " + data);
+                    continue;
+                }
+
+                // keep employees whose ID don't match
+                if (emp.getID() != empID) {
+                    writer.println(data);
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("An error occurred while removing employee.");
+            e.printStackTrace();
+            return;
+        }
+
+        // Replace original file with temp
+        if (!inputFile.delete()) {
+            System.out.println("Could not delete original file");
+            return;
+        }
+        if (!tempFile.renameTo(inputFile)) {
+            System.out.println("Could not rename temp file");
+        }
     }
-    if (!tempFile.renameTo(inputFile)) {
-        System.out.println("Could not rename temp file");
-    }
-}
 
-
-
-    private BaseEmployee parseEmployee(String data){
-        //Parsing logic here
+    private BaseEmployee parseEmployee(String data) {
+        // Parsing logic here
         BaseEmployee emp = null;
         TimeCard card = null;
         Scanner tempScanner = new Scanner(data);
@@ -302,7 +353,7 @@ public void removeFromEmployee(int empID){
         int routingNum = tempScanner.nextInt();
         int accountNum = tempScanner.nextInt();
         Account account = new Account(bankName, routingNum, accountNum);
-        if (empType.equals("SALARY")){
+        if (empType.equals("SALARY")) {
             int salary = tempScanner.nextInt();
             emp = new Salary(id, fName, lName, DOB, social, salary);
             emp.setAccount(account);
@@ -310,7 +361,7 @@ public void removeFromEmployee(int empID){
             emp.setTimeCard(card);
             tempScanner.close();
             return emp;
-        } else if (empType.equals("HOURLY")){
+        } else if (empType.equals("HOURLY")) {
             double hourlyRate = tempScanner.nextDouble();
             double overtimeRate = tempScanner.nextDouble();
             emp = new Hourly(id, fName, lName, DOB, social, hourlyRate, overtimeRate);
@@ -323,8 +374,8 @@ public void removeFromEmployee(int empID){
         return null;
     }
 
-    private OffboardingEmployee parseOffBoardEmployee(String data){
-        //Parsing logic here
+    private OffboardingEmployee parseOffBoardEmployee(String data) {
+        // Parsing logic here
         Scanner tempScanner = new Scanner(data);
         int id = tempScanner.nextInt();
         String fName = tempScanner.next();
@@ -336,7 +387,6 @@ public void removeFromEmployee(int empID){
         if (tempScanner.hasNextLine()) {
             reasonForLeaving = tempScanner.nextLine().trim();
         }
-        
 
         OffboardingEmployee emp = new OffboardingEmployee(id, fName, lName, DOB, social, date, reasonForLeaving);
         tempScanner.close();
@@ -348,7 +398,8 @@ public void removeFromEmployee(int empID){
         try (Scanner myReader = new Scanner(new File("schedules.txt"))) {
             while (myReader.hasNextLine()) {
                 String line = myReader.nextLine().trim();
-                if (line.isEmpty()) continue; // skip blank separators
+                if (line.isEmpty())
+                    continue; // skip blank separators
 
                 Scanner tempScanner = new Scanner(line);
                 int scheduleId = tempScanner.nextInt();
@@ -362,8 +413,10 @@ public void removeFromEmployee(int empID){
                 // Read following shift lines until ENDSHIFTS marker
                 while (myReader.hasNextLine()) {
                     String nextLine = myReader.nextLine().trim();
-                    if (nextLine.isEmpty()) continue; // ignore stray blanks
-                    if (nextLine.equals("ENDSHIFTS")) break;
+                    if (nextLine.isEmpty())
+                        continue; // ignore stray blanks
+                    if (nextLine.equals("ENDSHIFTS"))
+                        break;
 
                     Scanner shiftScanner = new Scanner(nextLine);
                     int shiftId = shiftScanner.nextInt();
@@ -384,12 +437,13 @@ public void removeFromEmployee(int empID){
         }
         return schedules;
     }
-    public int getNextScheduleID(){
+
+    public int getNextScheduleID() {
         int maxId = 0;
         try {
             ArrayList<Schedule> scheds = getSchedules();
-            for(Schedule sched : scheds){
-                if(sched.getScheduleId() > maxId){
+            for (Schedule sched : scheds) {
+                if (sched.getScheduleId() > maxId) {
                     maxId = sched.getScheduleId();
                 }
             }
@@ -400,7 +454,7 @@ public void removeFromEmployee(int empID){
         return maxId + 1;
     }
 
-    //No method to write time offs exists yet, will be done on future use case
+    // No method to write time offs exists yet, will be done on future use case
     public ArrayList<Timeoff> getTimeoffs() {
         ArrayList<Timeoff> timeoffs = new ArrayList<>();
         try (Scanner myReader = new Scanner(new File("timeoff.txt"))) {
@@ -421,10 +475,10 @@ public void removeFromEmployee(int empID){
             e.printStackTrace();
         }
         return timeoffs;
-    } 
+    }
 
     public void writeTimeoff(Timeoff data) {
-        try(FileWriter fwTimeoff = new FileWriter("timeoff.txt", true)){
+        try (FileWriter fwTimeoff = new FileWriter("timeoff.txt", true)) {
             fwTimeoff.write(data.getData() + "\n");
             System.out.println("Successfully appended to the file.");
         } catch (IOException e) {
@@ -450,7 +504,7 @@ public void removeFromEmployee(int empID){
         return employees;
     }
 
-    private Account parseAccount(String data){
+    private Account parseAccount(String data) {
         Scanner tempScanner = new Scanner(data);
         String bankName = tempScanner.next();
         int routingNum = tempScanner.nextInt();
@@ -464,8 +518,8 @@ public void removeFromEmployee(int empID){
 
     }
 
-    public void writeSchedule(Schedule schedule){
-        try(FileWriter fwSchedule = new FileWriter("schedules.txt", true)){
+    public void writeSchedule(Schedule schedule) {
+        try (FileWriter fwSchedule = new FileWriter("schedules.txt", true)) {
             fwSchedule.write(schedule.getData() + "\n");
             System.out.println("Successfully appended to the file.");
         } catch (IOException e) {
@@ -494,5 +548,95 @@ public void removeFromEmployee(int empID){
             e.printStackTrace();
         }
         return payroll;
+    }
+
+    @Override
+    public void writeClockedInEmployee(BaseEmployee emp, String time, int date) {
+        try (FileWriter fwClockedIn = new FileWriter("clockedInEmployees.txt", true)) {
+            fwClockedIn.write(emp.getSocial() + " " + date + " " + time + "\n");
+            System.out.println("Successfully appended to the file.");
+        } catch (IOException e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public boolean clockOutEmployee(ClockTime emp) {
+        File inputFile = new File("clockedInEmployees.txt");
+        File tempFile = new File("clockedInEmployees_temp.txt");
+
+        String socialString = String.valueOf(emp.getSocial());
+        boolean removed = false;
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(inputFile));
+                PrintWriter writer = new PrintWriter(new FileWriter(tempFile))) {
+
+            String currentLine;
+            while ((currentLine = reader.readLine()) != null) {
+                if (currentLine.trim().isEmpty()) {
+                    // skip empty lines
+                    continue;
+                }
+
+                // split on whitespace
+                String[] parts = currentLine.trim().split("\\s+");
+                String firstToken = parts.length > 0 ? parts[0] : "";
+
+                if (socialString.equals(firstToken)) {
+                    // removes the line
+                    removed = true;
+                    continue;
+                }
+
+                writer.println(currentLine);
+            }
+
+            writer.flush();
+        } catch (IOException e) {
+            System.out.println("An error occurred while processing clocked-in file.");
+            e.printStackTrace();
+            return false;
+        }
+
+        // replace the original file with temp file
+        try {
+            Path source = tempFile.toPath();
+            Path target = inputFile.toPath();
+            // Use REPLACE_EXISTING to overwrite
+            Files.move(source, target, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+        } catch (AtomicMoveNotSupportedException amnse) {
+            // fallback if atomic move isn't supported on the filesystem
+            try {
+                Files.move(tempFile.toPath(), inputFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            } catch (IOException e) {
+                System.out.println("Could not replace original file with temp file.");
+                e.printStackTrace();
+                return false;
+            }
+        } catch (IOException e) {
+            System.out.println("Could not replace original file with temp file.");
+            e.printStackTrace();
+            return false;
+        }
+
+        if (removed) {
+            System.out.println("Employee clocked out");
+        } else {
+            System.out.println("Employee was not clocked in.");
+        }
+
+        return removed;
+    }
+
+    @Override
+    public void writeTimeHistory(ClockTime emp) {
+        try (FileWriter fwTimeHistory = new FileWriter("employeeTimeHistory.txt", true)) {
+            fwTimeHistory.write(emp.getData() + "\n");
+            System.out.println("Successfully appended to the file.");
+        } catch (IOException e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        }
     }
 }
