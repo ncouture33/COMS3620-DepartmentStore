@@ -249,29 +249,36 @@ public void removeFromEmployee(int empID){
         ArrayList<Schedule> schedules = new ArrayList<>();
         try (Scanner myReader = new Scanner(new File("schedules.txt"))) {
             while (myReader.hasNextLine()) {
-                String data = myReader.nextLine();
-                Scanner tempScanner = new Scanner(data);
+                String line = myReader.nextLine().trim();
+                if (line.isEmpty()) continue; // skip blank separators
+
+                Scanner tempScanner = new Scanner(line);
                 int scheduleId = tempScanner.nextInt();
                 int hoursOpen = tempScanner.nextInt();
                 int shiftLength = tempScanner.nextInt();
                 int minStaff = tempScanner.nextInt();
+                tempScanner.close();
+
                 Schedule schedule = new Schedule(scheduleId, hoursOpen, shiftLength, minStaff);
-                
-                String nextLine = myReader.nextLine();
-                //Parsing for shiftsa
-                while (!nextLine.equals("ENDSHIFTS")) { // Changed to ENDSHIFTS to match new format
-                    tempScanner = new Scanner(nextLine);
-                    int shiftId = tempScanner.nextInt();
-                    String day = tempScanner.next();
-                    String shiftStart = tempScanner.next();
-                    String shiftEnd = tempScanner.next();
+
+                // Read following shift lines until ENDSHIFTS marker
+                while (myReader.hasNextLine()) {
+                    String nextLine = myReader.nextLine().trim();
+                    if (nextLine.isEmpty()) continue; // ignore stray blanks
+                    if (nextLine.equals("ENDSHIFTS")) break;
+
+                    Scanner shiftScanner = new Scanner(nextLine);
+                    int shiftId = shiftScanner.nextInt();
+                    String day = shiftScanner.next();
+                    String shiftStart = shiftScanner.next();
+                    String shiftEnd = shiftScanner.next();
+                    shiftScanner.close();
+
                     Shift shift = new Shift(shiftId, day, shiftStart, shiftEnd);
                     schedule.addShift(shift);
-                    nextLine = myReader.nextLine();
                 }
-                
+
                 schedules.add(schedule);
-                tempScanner.close();
             }
         } catch (Exception e) {
             System.out.println("An error occurred.");
@@ -281,7 +288,7 @@ public void removeFromEmployee(int empID){
     }
     public int getNextScheduleID(){
         int maxId = 0;
-        try (Scanner myReader = new Scanner(new File("schedules.txt"))) {
+        try {
             ArrayList<Schedule> scheds = getSchedules();
             for(Schedule sched : scheds){
                 if(sched.getScheduleId() > maxId){

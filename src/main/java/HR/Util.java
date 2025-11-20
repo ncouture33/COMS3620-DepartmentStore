@@ -115,7 +115,7 @@ public class Util {
             }
             else if (command.equals("3")){
                 //schedule employee shifts
-                System.out.println("Enter the Id's of employees you would like to exclude from scheduling, separated by commas (enter if none shoudl be excluded):");
+                System.out.println("Enter the Id's of employees you would like to exclude from scheduling, separated by commas (enter if none should be excluded):");
                 //logic for excluding employees from scheduling to be implemented
                 ArrayList<Integer> excludeList = new ArrayList<>();
                 
@@ -139,7 +139,7 @@ public class Util {
                 int shiftLength = Integer.parseInt(scanner.nextLine());
                 System.out.println("Enter the minimum required staff per shift");
                 int minStaff = Integer.parseInt(scanner.nextLine());
-                
+
                 int newShiftId = database.getNextScheduleID();
                 Schedule schedule = new Schedule(newShiftId, hoursOpen, shiftLength, minStaff);
                 schedule.determineSchedule(employees, database.getTimeoffs());
