@@ -18,6 +18,8 @@ import HR.Schedule;
 import HR.Shift;
 import HR.TimeCard;
 import HR.Timeoff;
+import StoreFloor.Customer;
+import StoreFloor.Rewards;
 
 public class Database implements DatabaseWriter{
 
@@ -376,6 +378,67 @@ public void removeFromEmployee(int empID){
         }
     }
 
+
+    public int generateCustomerRewardsID() {
+        int maxId = 0;
+        try {
+            ArrayList<Rewards> rewardsList = getCustomerRewards();
+            for (Rewards r : rewardsList) {
+                if (r.getId() > maxId) {
+                    maxId = r.getId();
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        }
+        return maxId + 1; // Return next available ID if not found
+    }
+
+    public void addCustomerToRewardsProgram(Customer customer) {
+        try(FileWriter fwRewards = new FileWriter("rewards.txt", true)){
+            Rewards rewards = customer.getRewards();
+            fwRewards.write(rewards.getData() + "\n");
+            System.out.println("Successfully appended to the rewards file.");
+        } catch (IOException e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        }
+    }
+
+    public Rewards getCustomerRewards(String phoneNumber) {
+        Rewards rewards = null;
+        ArrayList<Rewards> allRewards = getCustomerRewards();
+        for (Rewards r : allRewards) {
+            if (r.getPhoneNumber().equals(phoneNumber)) {
+                rewards = r;
+                break;
+            }
+        }
+        return rewards;
+    }
+
+    public ArrayList<Rewards> getCustomerRewards(){
+        ArrayList<Rewards> rewards = new ArrayList<>();
+        try (Scanner myReader = new Scanner(new File("rewards.txt"))) {
+            while (myReader.hasNextLine()) {
+                String data = myReader.nextLine();
+                Scanner tempScanner = new Scanner(data);
+                String name = tempScanner.next();
+                String phone = tempScanner.next();
+                String email = tempScanner.next();
+                int id = tempScanner.nextInt();
+                int points = tempScanner.nextInt();
+                Rewards reward = new Rewards(id, points, email, phone);
+                rewards.add(reward);
+                tempScanner.close();
+            }
+        } catch (Exception e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        }
+        return rewards;
+    }
     @Override
     public Payroll getPayroll() {
         ArrayList<BaseEmployee> employees = new ArrayList<>();

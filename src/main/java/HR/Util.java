@@ -25,7 +25,7 @@ public class Util {
                 "3: Generate a new schedule\n" +
                 "4: View Upcoming Payroll\n" +
                 "5: Execute Payroll\n" +
-                "6: Modify a timecard\n" +
+                "6: Orientation\n" +
                 "Type 'exit' to return to main menu.\n"
             );
 
@@ -196,27 +196,27 @@ public class Util {
                 employee.setAccount(account);
                 OrientationSystem os = new OrientationSystem();
 
-            // Assign required tasks to the employee first
-            os.assignRequiredTasks(employee);
+                // Assign required tasks to the employee first
+                os.assignRequiredTasks(employee);
 
-            // Ask the user to enter the task details
-            System.out.println("Enter the name of the task to add and complete:");
-            String taskName = scanner.nextLine();
-            System.out.println("Enter the description of the task:");
-            String taskDesc = scanner.nextLine();
+                // Ask the user to enter the task details
+                System.out.println("Enter the name of the task to add and complete:");
+                String taskName = scanner.nextLine();
+                System.out.println("Enter the description of the task:");
+                String taskDesc = scanner.nextLine();
 
-            // Create and add the task to the employee
-            BasicOrientationTask task = new BasicOrientationTask(taskName, taskDesc);
-            employee.addOrientationTask(task);
+                // Create and add the task to the employee
+                BasicOrientationTask task = new BasicOrientationTask(taskName, taskDesc);
+                employee.addOrientationTask(task);
 
-            // Start the orientation
-            employee.startOrientation();
+                // Start the orientation
+                employee.startOrientation();
 
-            // Complete the task
-            employee.completeOrientationTask(taskName);
+                // Complete the task
+                employee.completeOrientationTask(taskName);
 
-            // Notify manager and HR
-            os.notifyManagerAndHR(employee);
+                // Notify manager and HR
+                os.notifyManagerAndHR(employee);
             }
             //More options go here
 
