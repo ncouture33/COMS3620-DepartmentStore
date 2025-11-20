@@ -108,7 +108,6 @@ public class Util {
                         database.writePriorEmployee(database.getOffboardingEmployee(empID), "Property has not been returned");
                     }
                     database.removeOffboardingEmployee(empID);
-
                 }
             }
             else if (command.equals("3")){
