@@ -84,7 +84,9 @@ public class AuthService {
     }
 
     /**
-     * Attempt login — returns employee when username/password/pin match, otherwise null.
+     * Attempt login
+     * 
+     *  returns employee when username/password/pin match, otherwise null.
      */
     public synchronized BaseEmployee login(String username, String password, String pin){
         if(username == null || password == null || pin == null) return null;

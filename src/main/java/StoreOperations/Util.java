@@ -49,7 +49,15 @@ public class Util {
 			System.out.println("No active logged-in register to log out from.");
 			return;
 		}
-		String name = pos.getLoggedInEmployee().getFName() + " " + pos.getLoggedInEmployee().getLName();
+		HR.BaseEmployee employee = pos.getLoggedInEmployee();
+		System.out.print("Enter PIN to confirm logout: ");
+		String pin = scanner.nextLine().trim();
+		if (!employee.verifyPin(pin)) {
+			System.out.println("Invalid PIN. Logout aborted.");
+			return;
+		}
+
+		String name = employee.getFName() + " " + employee.getLName();
 		pos.logoutEmployee();
 		// clear the session
 		Session.setCurrentPOS(null);
