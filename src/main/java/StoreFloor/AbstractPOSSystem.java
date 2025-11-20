@@ -22,7 +22,7 @@ public abstract class AbstractPOSSystem implements POSComponent{
     public void scanItem(Item item){
         currentSale.add(item);
         total += item.getPrice();
-        System.out.println("Scanned "+ item.getName() + "Total: $"+ total);
+        System.out.println("Scanned "+ item.getName() + "\tTotal: $"+ total);
     }
     @Override
     public boolean finalizeSale(PaymentMethod payment) {
