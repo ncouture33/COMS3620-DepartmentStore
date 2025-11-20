@@ -139,8 +139,7 @@ public class Util {
                 int shiftLength = Integer.parseInt(scanner.nextLine());
                 System.out.println("Enter the minimum required staff per shift");
                 int minStaff = Integer.parseInt(scanner.nextLine());
-
-                //TODO: make this method
+                
                 int newShiftId = database.getNextScheduleID();
                 Schedule schedule = new Schedule(newShiftId, hoursOpen, shiftLength, minStaff);
                 schedule.determineSchedule(employees, database.getTimeoffs());

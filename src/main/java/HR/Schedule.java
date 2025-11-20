@@ -5,8 +5,6 @@ import Utils.Data;
 
 public class Schedule implements Data {
     private int scheduleId;
-    // private int periodStart;
-    // private int periodEnd;
     private int hours;
     private int shiftLength;
     private int minimumRequiredStaff;
@@ -15,8 +13,6 @@ public class Schedule implements Data {
 
     public Schedule(int scheduleId, int hours, int shiftLength, int minimumRequiredStaff){
         this.scheduleId = scheduleId;
-        // this.periodStart = periodStart;
-        // this.periodEnd = periodEnd;
         this.hours = hours;
         this.shiftLength = shiftLength;
         this.minimumRequiredStaff = minimumRequiredStaff;
@@ -29,7 +25,6 @@ public class Schedule implements Data {
     }
     
     public void determineSchedule(ArrayList<BaseEmployee> employees, ArrayList<Timeoff> timeoffs){
-        //TODO implement schedule setting
         //make a list of employees excluding those on timeoff
         //then sort the list so that ones with time off have priorities to be scheduled first
         sortEmployeesByPriority(employees, timeoffs);
@@ -83,7 +78,6 @@ public class Schedule implements Data {
     }
 
     private void assignEmployeeToShift(BaseEmployee employee, int day, int shiftIndex){
-        //TODO implement assigning employee to shift
         String shiftDate = "2025-11-" + String.format("%02d", day + 1); // Example date format
         String startTime = String.format("%02d:00", shiftIndex * shiftLength);
         String endTime = String.format("%02d:00", (shiftIndex + 1) * shiftLength);
@@ -92,7 +86,6 @@ public class Schedule implements Data {
     }
     
     private void sortEmployeesByPriority(ArrayList<BaseEmployee> employees, ArrayList<Timeoff> timeoffs){
-        //TODO implement sorting logic
         //want to sort so that employees with time off requests are prioritized - so they come first basically
         int n = employees.size();
         boolean swapped = false;
