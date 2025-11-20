@@ -1,14 +1,12 @@
 package HR;
 
-import Utils.Database;
-import Utils.DatabaseWriter;
-
 import java.util.ArrayList;
 import java.util.Scanner;
 
-
 import HR.Orientation.BasicOrientationTask;
 import HR.Orientation.NewEmployee;
+import Utils.Database;
+import Utils.DatabaseWriter;
 
 
 public class Util {
@@ -24,7 +22,7 @@ public class Util {
             System.out.print(
                 "1: Onboard an employee\n" +
                 "2: Offboard an employee\n" +
-                "3: View all employees\n" +
+                "3: Generate a new schedule\n" +
                 "4: View Upcoming Payroll\n" +
                 "5: Execute Payroll\n" +
                 "6: Modify a timecard\n" +
@@ -116,7 +114,50 @@ public class Util {
                 }
             }
             else if (command.equals("3")){
-                //todo
+                //schedule employee shifts
+                System.out.println("Enter the Id's of employees you would like to exclude from scheduling, separated by commas (enter if none should be excluded):");
+                //logic for excluding employees from scheduling to be implemented
+                ArrayList<Integer> excludeList = new ArrayList<>();
+                
+                String excludeInput = scanner.nextLine();
+                if (!excludeInput.isEmpty()){
+                    String[] excludeIds = excludeInput.split(",");
+                    for(String idStr : excludeIds){
+                        try{
+                            int id = Integer.parseInt(idStr.trim());
+                            excludeList.add(id);
+                        }catch(NumberFormatException e){
+                            System.out.println("Invalid employee ID: " + idStr);
+                        }
+                    }
+                }
+                
+                ArrayList<BaseEmployee> employees = database.getAllEmployeesExcluding(excludeList);
+                System.out.println("Enter the number of hours that the store is open each day");
+                int hoursOpen = Integer.parseInt(scanner.nextLine());
+                System.out.println("Enter the length of each shift in hours");
+                int shiftLength = Integer.parseInt(scanner.nextLine());
+                System.out.println("Enter the minimum required staff per shift");
+                int minStaff = Integer.parseInt(scanner.nextLine());
+
+                int newShiftId = database.getNextScheduleID();
+                Schedule schedule = new Schedule(newShiftId, hoursOpen, shiftLength, minStaff);
+                schedule.determineSchedule(employees, database.getTimeoffs());
+                
+                System.out.println("Generated Schedule:");
+                System.out.println(schedule.getData());
+
+                System.out.println("Enter yes to confirm this schedule, or no to discard it:");
+                String confirm = scanner.nextLine();
+                
+                if(confirm.equalsIgnoreCase("yes")){
+                    database.writeSchedule(schedule);
+                    System.out.println("Schedule saved.");
+                }
+                else{
+                    System.out.println("Schedule discarded.");
+                }
+                
             }
 
             else if (command.equals("4")){

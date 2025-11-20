@@ -1,5 +1,5 @@
 package StoreFloor;
 
 public interface PaymentMethod {
-    boolean processPayment(double amount);
+    double processPayment(double amount);
 } 
