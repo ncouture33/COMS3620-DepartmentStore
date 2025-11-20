@@ -1,11 +1,13 @@
 package Utils;
 
+import java.util.ArrayList;
+
 import HR.BaseEmployee;
 import HR.OffboardingEmployee;
 import HR.Payroll;
 import HR.Paystub;
-
-import java.util.ArrayList;
+import HR.Schedule;
+import HR.Timeoff;
 
 public interface DatabaseWriter {
     public void writeEmployee(BaseEmployee data);
@@ -27,5 +29,14 @@ public interface DatabaseWriter {
     public Payroll getPayroll();
 
     public void writePaystubs(ArrayList<Paystub> list, String date);
+   
+    public ArrayList<BaseEmployee> getAllEmployeesExcluding(ArrayList<Integer> excludeList);
 
+    public ArrayList<Timeoff> getTimeoffs();
+
+    public void writeTimeoff(Timeoff data);
+
+    public int getNextScheduleID();
+
+    public void writeSchedule(Schedule schedule);
 }

@@ -6,9 +6,9 @@ import java.util.Scanner;
 
 import StoreFloor.CardPayment;
 import StoreFloor.CashPayment;
+import StoreFloor.Customer;
 import StoreFloor.Item;
 import StoreFloor.PaymentMethod;
-import StoreFloor.Customer;
 import StoreFloor.StorePOS;
 
 public class Main {

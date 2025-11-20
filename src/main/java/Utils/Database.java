@@ -1,13 +1,23 @@
 package Utils;
 
-import HR.*;
-
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Scanner;
+
+import HR.Account;
+import HR.BaseEmployee;
+import HR.Hourly;
+import HR.OffboardingEmployee;
+import HR.Payroll;
+import HR.Paystub;
+import HR.Salary;
+import HR.Schedule;
+import HR.Shift;
+import HR.TimeCard;
+import HR.Timeoff;
 
 public class Database implements DatabaseWriter{
 
@@ -235,8 +245,105 @@ public void removeFromEmployee(int empID){
         return emp;
     }
 
+    public ArrayList<Schedule> getSchedules() {
+        ArrayList<Schedule> schedules = new ArrayList<>();
+        try (Scanner myReader = new Scanner(new File("schedules.txt"))) {
+            while (myReader.hasNextLine()) {
+                String data = myReader.nextLine();
+                Scanner tempScanner = new Scanner(data);
+                int scheduleId = tempScanner.nextInt();
+                int hoursOpen = tempScanner.nextInt();
+                int shiftLength = tempScanner.nextInt();
+                int minStaff = tempScanner.nextInt();
+                Schedule schedule = new Schedule(scheduleId, hoursOpen, shiftLength, minStaff);
+                
+                String nextLine = myReader.nextLine();
+                //Parsing for shiftsa
+                while (!nextLine.equals("ENDSHIFTS")) { // Changed to ENDSHIFTS to match new format
+                    tempScanner = new Scanner(nextLine);
+                    int shiftId = tempScanner.nextInt();
+                    String day = tempScanner.next();
+                    String shiftStart = tempScanner.next();
+                    String shiftEnd = tempScanner.next();
+                    Shift shift = new Shift(shiftId, day, shiftStart, shiftEnd);
+                    schedule.addShift(shift);
+                    nextLine = myReader.nextLine();
+                }
+                
+                schedules.add(schedule);
+                tempScanner.close();
+            }
+        } catch (Exception e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        }
+        return schedules;
+    }
+    public int getNextScheduleID(){
+        int maxId = 0;
+        try (Scanner myReader = new Scanner(new File("schedules.txt"))) {
+            ArrayList<Schedule> scheds = getSchedules();
+            for(Schedule sched : scheds){
+                if(sched.getScheduleId() > maxId){
+                    maxId = sched.getScheduleId();
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        }
+        return maxId + 1;
+    }
 
+    //No method to write time offs exists yet, will be done on future use case
+    public ArrayList<Timeoff> getTimeoffs() {
+        ArrayList<Timeoff> timeoffs = new ArrayList<>();
+        try (Scanner myReader = new Scanner(new File("timeoff.txt"))) {
+            while (myReader.hasNextLine()) {
+                String data = myReader.nextLine();
+                Scanner tempScanner = new Scanner(data);
+                int empId = tempScanner.nextInt();
+                Timeoff timeoff = new Timeoff(empId); // startDate and endDate are not stored in the file
+                while (tempScanner.hasNext()) {
+                    String date = tempScanner.next();
+                    timeoff.addDate(date);
+                }
+                timeoffs.add(timeoff);
+                tempScanner.close();
+            }
+        } catch (Exception e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        }
+        return timeoffs;
+    } 
 
+    public void writeTimeoff(Timeoff data) {
+        try(FileWriter fwTimeoff = new FileWriter("timeoff.txt", true)){
+            fwTimeoff.write(data.getData() + "\n");
+            System.out.println("Successfully appended to the file.");
+        } catch (IOException e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        }
+    }
+
+    public ArrayList<BaseEmployee> getAllEmployeesExcluding(ArrayList<Integer> excludeList) {
+        ArrayList<BaseEmployee> employees = new ArrayList<>();
+        try (Scanner myReader = new Scanner(new File("employees.txt"))) {
+            while (myReader.hasNextLine()) {
+                String data = myReader.nextLine();
+                BaseEmployee emp = parseEmployee(data);
+                if (!excludeList.contains(emp.getID())) {
+                    employees.add(emp);
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        }
+        return employees;
+    }
 
     private Account parseAccount(String data){
         Scanner tempScanner = new Scanner(data);
@@ -250,6 +357,16 @@ public void removeFromEmployee(int empID){
     @Override
     public void addPayroll() {
 
+    }
+
+    public void writeSchedule(Schedule schedule){
+        try(FileWriter fwSchedule = new FileWriter("schedules.txt", true)){
+            fwSchedule.write(schedule.getData() + "\n");
+            System.out.println("Successfully appended to the file.");
+        } catch (IOException e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        }
     }
 
     @Override
