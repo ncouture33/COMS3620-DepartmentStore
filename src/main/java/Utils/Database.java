@@ -11,6 +11,8 @@ import HR.Account;
 import HR.BaseEmployee;
 import HR.Hourly;
 import HR.OffboardingEmployee;
+import HR.Orientation.BasicOrientationTask;
+import HR.Orientation.OrientationTask;
 import HR.Payroll;
 import HR.Paystub;
 import HR.Salary;
@@ -132,6 +134,92 @@ public class Database implements DatabaseWriter{
             System.out.println("An error occurred.");
             e.printStackTrace();
         }
+    }
+
+    // --- Orientation persistence (space-delimited) ---
+    // Line format: empId completed(0|1) taskName taskDescription
+    @Override
+    public void addOrientationTask(int empId, String taskName, String taskDescription) {
+        File f = new File("orientation_tasks.txt");
+        String safeName = taskName == null ? "" : taskName.replaceAll("\\s+", "_");
+        String safeDesc = taskDescription == null ? "" : taskDescription.replaceAll("\\|", " ");
+        try (FileWriter fw = new FileWriter(f, true)) {
+            fw.write(empId + " " + "0" + " " + safeName + " " + safeDesc + "\n");
+        } catch (IOException e) {
+            System.out.println("Failed to append orientation task.");
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public ArrayList<OrientationTask> getOrientationTasks(int empId) {
+        ArrayList<OrientationTask> tasks = new ArrayList<>();
+        File f = new File("orientation_tasks.txt");
+        if (!f.exists()) return tasks;
+        try (Scanner reader = new Scanner(f)) {
+            while (reader.hasNextLine()) {
+                String line = reader.nextLine().trim();
+                if (line.isEmpty()) continue;
+                String[] parts = line.split(" ", 4);
+                if (parts.length < 3) continue;
+                int id;
+                try { id = Integer.parseInt(parts[0]); } catch (Exception e) { continue; }
+                if (id != empId) continue;
+                String completed = parts[1];
+                String name = parts.length >= 3 ? parts[2] : "";
+                String desc = parts.length == 4 ? parts[3] : "";
+                String prettyName = name.replaceAll("_", " ");
+                BasicOrientationTask t = new BasicOrientationTask(prettyName, desc);
+                if ("1".equals(completed)) t.markCompleted();
+                tasks.add(t);
+            }
+        } catch (Exception e) {
+            System.out.println("Failed to read orientation tasks.");
+            e.printStackTrace();
+        }
+        return tasks;
+    }
+
+    @Override
+    public boolean completeOrientationTask(int empId, String taskName) {
+        File inputFile = new File("orientation_tasks.txt");
+        if (!inputFile.exists()) return false;
+        File tempFile = new File("temp_orientation_tasks.txt");
+        boolean changed = false;
+        String normalizedTarget = taskName == null ? "" : taskName.replaceAll("\\s+", "_");
+        try (Scanner reader = new Scanner(inputFile); FileWriter fw = new FileWriter(tempFile, false)) {
+            while (reader.hasNextLine()) {
+                String line = reader.nextLine();
+                String trimmed = line.trim();
+                if (trimmed.isEmpty()) continue;
+                String[] parts = trimmed.split(" ", 4);
+                if (parts.length < 3) { fw.write(line + "\n"); continue; }
+                int id;
+                try { id = Integer.parseInt(parts[0]); } catch (Exception e) { fw.write(line + "\n"); continue; }
+                String completed = parts[1];
+                String name = parts.length >= 3 ? parts[2] : "";
+                String desc = parts.length == 4 ? parts[3] : "";
+                if (id == empId && name.equalsIgnoreCase(normalizedTarget) && !"1".equals(completed)) {
+                    fw.write(id + " " + "1" + " " + name + " " + desc + "\n");
+                    changed = true;
+                } else {
+                    fw.write(line + "\n");
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("Failed to update orientation tasks.");
+            e.printStackTrace();
+            return false;
+        }
+        if (!inputFile.delete()) {
+            System.out.println("Could not delete original orientation tasks file.");
+            return false;
+        }
+        if (!tempFile.renameTo(inputFile)) {
+            System.out.println("Could not rename temp orientation tasks file.");
+            return false;
+        }
+        return changed;
     }
 
     @Override
