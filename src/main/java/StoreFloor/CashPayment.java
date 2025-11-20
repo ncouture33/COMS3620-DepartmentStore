@@ -7,6 +7,8 @@ public class CashPayment implements PaymentMethod {
     }
     @Override
     public boolean processPayment( double amount){
+        double change = amountGiven - amount;
+        System.out.println("Change Due: $" + String.format("%.2f", change));
         if(amountGiven >= amount){
             return true;
         }
