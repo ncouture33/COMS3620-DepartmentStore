@@ -136,8 +136,6 @@ public class Database implements DatabaseWriter{
         }
     }
 
-    // --- Orientation persistence (space-delimited) ---
-    // Line format: empId completed(0|1) taskName taskDescription
     @Override
     public void addOrientationTask(int empId, String taskName, String taskDescription) {
         File f = new File("orientation_tasks.txt");
