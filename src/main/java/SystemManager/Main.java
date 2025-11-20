@@ -1,6 +1,9 @@
 package SystemManager;
 
 
+import StoreOperations.Session;
+import HR.BaseEmployee;
+import StoreFloor.StorePOS;
 
 import java.util.Scanner;
 
@@ -17,8 +20,18 @@ public class Main {
         Scanner scanner = new Scanner(System.in);
         
         while (true){
+            
+            // show active register status when someone is logged in
+            StorePOS active = Session.getCurrentPOS();
+            if (active != null && active.getLoggedInEmployee() != null) {
+                BaseEmployee be = active.getLoggedInEmployee();
+                String user = be.getUsername() == null ? (be.getFName() + " " + be.getLName()) : be.getUsername() + " (" + be.getFName() + " " + be.getLName() + ")";
+                System.out.println("Active register: " + user);
+            }
+
             System.out.print("1: HR related actions\n");
             System.out.print("2: Store Floor actions\n");
+            System.out.print("3: Store Operation Actions\n");
             System.out.print("5: Inventory actions\n");
             System.out.print("6: Store/Point-of-Sale\n");
 
@@ -27,14 +40,22 @@ public class Main {
             if (command.equals("1")){
                 HR.Util.runHR(scanner);
             }
-            else if (command.equals("5")){
-                inventory.Util.runInventory(scanner);
-            }else if(command.equals("2")){
+            else if(command.equals("2")){
                 StoreFloor.Util.runSales(scanner);
             }
+<<<<<<< HEAD
+            else if(command.equals("3")){
+                StoreOperations.Util.runOperations(scanner);
+            }
+            else if (command.equals("5")){
+                inventory.Util.runInventory(scanner);
+            }
+            
+=======
             else if (command.equals("6")){
                 runStore(scanner);
             }
+>>>>>>> da10320fff26ca4dd28d17fc26ab234cb36fb7a3
             //More options go here
 
             else if (command.equals("exit")){

@@ -30,9 +30,14 @@ public class StorePOS extends AbstractPOSSystem {
 
         System.out.println("----------------------------\n");
     }
+<<<<<<< HEAD
+    // Gift Card Functionality
+    public GiftCard createGiftCard(String cardNumber, double amount){
+=======
 
     // Gift Card purchase (optional)
     public GiftCard createGiftCard(String cardNumber, double amount) {
+>>>>>>> da10320fff26ca4dd28d17fc26ab234cb36fb7a3
         GiftCard giftCard = new GiftCard(cardNumber);
         giftCard.loadAmount(amount);
         total += amount;
