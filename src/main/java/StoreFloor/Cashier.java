@@ -13,8 +13,8 @@ public class Cashier extends Hourly{
     public void applyAwards(Customer customer, POSComponent posSystem){
         posSystem.applyAwards(customer);
     }
-    public void completeSale(POSComponent posSystem, PaymentMethod payment){
-        posSystem.finalizeSale(payment);
+    public void completeSale(POSComponent posSystem, PaymentMethod payment, Customer customer){
+        posSystem.finalizeSale(payment, customer);
     }
     public GiftCard processGiftCard(StorePOS posSystem, String cardNumber, double amount){
         return posSystem.createGiftCard(cardNumber, amount);

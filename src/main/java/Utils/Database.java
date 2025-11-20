@@ -18,6 +18,8 @@ import HR.Schedule;
 import HR.Shift;
 import HR.TimeCard;
 import HR.Timeoff;
+import StoreFloor.Customer;
+import StoreFloor.Rewards;
 
 public class Database implements DatabaseWriter{
 
@@ -471,6 +473,108 @@ public void removeFromEmployee(int empID){
         } catch (IOException e) {
             System.out.println("An error occurred.");
             e.printStackTrace();
+        }
+    }
+
+
+    public int generateCustomerRewardsID() {
+        int maxId = 0;
+        try {
+            ArrayList<Rewards> rewardsList = getCustomerRewards();
+            for (Rewards r : rewardsList) {
+                if (r.getId() > maxId) {
+                    maxId = r.getId();
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        }
+        return maxId + 1; // Return next available ID if not found
+    }
+
+    public void addCustomerToRewardsProgram(Customer customer) {
+        try(FileWriter fwRewards = new FileWriter("rewards.txt", true)){
+            Rewards rewards = customer.getRewards();
+            fwRewards.write(rewards.getData() + "\n");
+            System.out.println("Successfully appended to the rewards file.");
+        } catch (IOException e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        }
+    }
+
+    public Rewards getCustomerRewards(String phoneNumber) {
+        Rewards rewards = null;
+        ArrayList<Rewards> allRewards = getCustomerRewards();
+        for (Rewards r : allRewards) {
+            if (r.getPhoneNumber().equals(phoneNumber)) {
+                rewards = r;
+                break;
+            }
+        }
+        return rewards;
+    }
+
+    public ArrayList<Rewards> getCustomerRewards(){
+        ArrayList<Rewards> rewards = new ArrayList<>();
+        try (Scanner myReader = new Scanner(new File("rewards.txt"))) {
+            while (myReader.hasNextLine()) {
+                String data = myReader.nextLine();
+                Scanner tempScanner = new Scanner(data);
+                int id = tempScanner.nextInt();
+                int points = tempScanner.nextInt();
+                String email = tempScanner.next();
+                String phone = tempScanner.next();
+                Rewards reward = new Rewards(id, points, email, phone);
+                rewards.add(reward);
+                tempScanner.close();
+            }
+        } catch (Exception e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        }
+        return rewards;
+    }
+
+    public void updateCustomerRewardsPoints(Rewards rewards) {
+        File inputFile = new File("rewards.txt");
+        File tempFile = new File("temp_rewards.txt");
+
+        try (
+            Scanner myReader = new Scanner(inputFile);
+            PrintWriter writer = new PrintWriter(tempFile);
+        ) {
+            while (myReader.hasNextLine()) {
+                String data = myReader.nextLine();
+                Scanner tempScanner = new Scanner(data);
+                int id = tempScanner.nextInt();
+                int points = tempScanner.nextInt();
+                String email = tempScanner.next();
+                String phone = tempScanner.next();
+                tempScanner.close();
+
+                // Update points if ID matches
+                if (id == rewards.getId()) {
+                    points = rewards.getPoints();
+                }
+
+                // Write updated or original line to temp file
+                writer.println(id + " " + points + " " + email + " " + phone);
+            }
+        } catch (Exception e) {
+            System.out.println("An error occurred while updating rewards.");
+            e.printStackTrace();
+            return;
+        }
+
+        // Replace original file with the updated one
+        if (!inputFile.delete()) {
+            System.out.println("Could not delete original rewards file.");
+            return;
+        }
+        if (!tempFile.renameTo(inputFile)) {
+            System.out.println("Could not rename temp rewards file.");
         }
     }
 

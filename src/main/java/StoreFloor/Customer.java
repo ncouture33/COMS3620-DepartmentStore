@@ -2,26 +2,25 @@ package StoreFloor;
 
 public class Customer extends AbstractPerson{
     private boolean rewardsMember;
-    private String email;
-    private String phone;
+    private Rewards rewards;
 
     public Customer(String name, boolean rewardsMember){
         super(name);
         this.rewardsMember = rewardsMember;
     }
+
+    public void setRewards(Rewards rewards){
+        this.rewards = rewards;
+    }
+
     public boolean isRewardsMember(){
         return rewardsMember;
     }
-    public void setContantInfo(String email, String phone){
-        this.email = email;
-        this.phone = phone;
-
+    public Rewards getRewards(){
+        return rewards;
     }
 
-    public String getPhone(){
-        return phone;
-    }
-    public String getEmail(){
-        return email;
-    }
+    public String getData(){
+        return "\n" + getName() + " " + rewardsMember + " ";
+    }   
 }

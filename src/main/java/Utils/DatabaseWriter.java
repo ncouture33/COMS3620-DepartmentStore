@@ -8,6 +8,8 @@ import HR.Payroll;
 import HR.Paystub;
 import HR.Schedule;
 import HR.Timeoff;
+import StoreFloor.Customer;
+import StoreFloor.Rewards;
 
 public interface DatabaseWriter {
     public void writeEmployee(BaseEmployee data);
@@ -39,4 +41,12 @@ public interface DatabaseWriter {
     public int getNextScheduleID();
 
     public void writeSchedule(Schedule schedule);
+
+    public void addCustomerToRewardsProgram(Customer customer);
+
+    public Rewards getCustomerRewards(String phoneNumber);
+
+    public int generateCustomerRewardsID();
+
+    public void updateCustomerRewardsPoints(Rewards rewards);
 }

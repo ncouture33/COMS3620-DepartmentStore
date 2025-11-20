@@ -2,9 +2,13 @@ package StoreFloor;
 
 import java.util.Scanner;
 
+import Utils.Database;
+import Utils.DatabaseWriter;
+
 public class Util {
     public static void runSales(Scanner scanner) {
         System.out.println("\n--- Point of Sale ---");
+        DatabaseWriter database = new Database();
 
         // Require an active, logged-in POS. If none, prompt user to sign in via Store Operations.
         StorePOS pos = StoreOperations.Session.getCurrentPOS();
@@ -18,8 +22,42 @@ public class Util {
 
         System.out.print("Is the customer a rewards member? (yes/no): ");
         boolean member = scanner.nextLine().equalsIgnoreCase("yes");
+        Customer customer = null;
 
-        Customer customer = new Customer(name, member);
+        if (member){
+            System.out.print("Enter phone number: ");
+            String phoneNumber = scanner.nextLine();
+            
+            Rewards rewards = database.getCustomerRewards(phoneNumber);
+            if (rewards == null){
+                System.out.println("No rewards account found for phone number " + phoneNumber);
+            }
+            else{
+                customer = new Customer(name, true);
+                customer.setRewards(rewards);
+                System.out.println("Rewards ID " + rewards.getId() + " linked to customer " + name + " with phone number " + phoneNumber);
+            }  
+        }
+        else{
+            System.out.print("Would you like to join the rewards program? (yes/no): ");
+            boolean answer = scanner.nextLine().equalsIgnoreCase("yes");
+            if (answer){
+                //add the customer to the rewards program
+                System.out.print("Enter phone number: ");
+                String phoneNumber = scanner.nextLine();
+                System.out.print("Enter email: ");
+                String email = scanner.nextLine();
+                customer = new Customer(name, true);
+                Rewards rewards = new Rewards(-1, 0, email, phoneNumber);
+                int id = database.generateCustomerRewardsID();
+                rewards.setID(id);
+                customer.setRewards(rewards);
+                database.addCustomerToRewardsProgram(customer);
+                System.out.println("Customer " + name + " added to rewards program with phone number " + phoneNumber);
+            }
+        }
+
+        
 
         pos.startTransaction();
 
@@ -31,24 +69,24 @@ public class Util {
         
             double price = 0;
         
-                if (itemName.equalsIgnoreCase("giftcard")) {
-                    System.out.print("Enter gift card number: ");
-                    String cardNumber = scanner.nextLine();
-                    System.out.print("Enter gift card amount: ");
-                    price = Double.parseDouble(scanner.nextLine());
-                    GiftCard giftCard = pos.createGiftCard(cardNumber, price);
-                    //giftCard.loadAmount(price);
-                    Item giftCardItem = new Item("Gift Card", price);
-                    pos.scanItem(giftCardItem);
-                    System.out.println(giftCard.toString());
-                    continue;
-                } else {
-                    System.out.print("Enter price: ");
-                    price = Double.parseDouble(scanner.nextLine());
-                    Item item = new Item(itemName, price);
-                    // Use POS API directly (scanItem) — the logged-in employee is tracked by the POS
-                    pos.scanItem(item);
-                }
+            if (itemName.equalsIgnoreCase("giftcard")) {
+                System.out.print("Enter gift card number: ");
+                String cardNumber = scanner.nextLine();
+                System.out.print("Enter gift card amount: ");
+                price = Double.parseDouble(scanner.nextLine());
+                GiftCard giftCard = pos.createGiftCard(cardNumber, price);
+                //giftCard.loadAmount(price);
+                Item giftCardItem = new Item("Gift Card", price);
+                pos.scanItem(giftCardItem);
+                System.out.println(giftCard.toString());
+                continue;
+            } else {
+                System.out.print("Enter price: ");
+                price = Double.parseDouble(scanner.nextLine());
+                Item item = new Item(itemName, price);
+                // Use POS API directly (scanItem) — the logged-in employee is tracked by the POS
+                pos.scanItem(item);
+            }
         }
         
         pos.applyAwards(customer);
@@ -60,15 +98,15 @@ public class Util {
             System.out.print("Enter cash amount: ");
             double cash = Double.parseDouble(scanner.nextLine());
             PaymentMethod payment = new CashPayment(cash);
-            pos.finalizeSale(payment);
+            pos.finalizeSale(payment, customer);
         } else if(method.equalsIgnoreCase("card")) {
             PaymentMethod payment = new CardPayment();
-            pos.finalizeSale(payment);
+            pos.finalizeSale(payment, customer);
         }else {
             System.out.println("Enter Giftcard Number: ");
             String card = scanner.nextLine();
             PaymentMethod payment = new GiftCardPayment(card);
-            pos.finalizeSale(payment);
+            pos.finalizeSale(payment, customer);
         }
 
         System.out.println("Transaction complete.\n");
