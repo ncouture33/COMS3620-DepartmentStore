@@ -28,8 +28,62 @@ public class Database implements DatabaseWriter{
         try(FileWriter fwEmployee = new FileWriter("employees.txt", true)){
             fwEmployee.write(data.getData() + "\n");
             System.out.println("Successfully appended to the file.");
+            writeRegisterCredentials(data);
         } catch (IOException e) {
             System.out.println("An error occurred.");
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Append credentials for an employee to registerEmployees.txt in the format:
+     * id username salt hash pin
+     */
+    public void writeRegisterCredentials(BaseEmployee data){
+        File credFile = new File("registerEmployees.txt");
+        java.util.ArrayList<String> keep = new java.util.ArrayList<>();
+        String newUsername = data.getUsername() == null ? "" : data.getUsername();
+        int newId = data.getID();
+
+        // read existing lines and keep those that do not belong to this employee id or username
+        if (credFile.exists()){
+            try (Scanner reader = new Scanner(credFile)){
+                while (reader.hasNextLine()){
+                    String line = reader.nextLine().trim();
+                    if(line.isEmpty()) continue;
+                    try (Scanner s = new Scanner(line)){
+                        int id = s.nextInt();
+                        String username = s.hasNext() ? s.next() : "";
+                        // skip entries matching this id or username
+                        if(id == newId) continue;
+                        if(!username.isEmpty() && username.equals(newUsername)) continue;
+                        keep.add(line);
+                    } catch (Exception ex){
+                        
+                        // if malformed, keep the line to avoid data loss
+                        keep.add(line);
+                    }
+                }
+            } 
+            catch (Exception e){
+                // if reading fails, proceed to overwrite by appending only the new entry
+            }
+        }
+
+        // prepare new line for this employee
+        String username = data.getUsername() == null ? "" : data.getUsername();
+        String salt = data.getStoredPasswordSalt() == null ? "" : data.getStoredPasswordSalt();
+        String hash = data.getStoredPasswordHash() == null ? "" : data.getStoredPasswordHash();
+        String pin = data.getPin() == null ? "" : data.getPin();
+        String newLine = data.getID() + " " + username + " " + salt + " " + hash + " " + pin;
+
+        // write back kept lines + the new line
+        try (FileWriter fw = new FileWriter(credFile, false)){
+            for (String l : keep) fw.write(l + "\n");
+            fw.write(newLine + "\n");
+            System.out.println("Successfully wrote credentials to registerEmployees.txt");
+        } catch (IOException e) {
+            System.out.println("An error occurred writing credentials.");
             e.printStackTrace();
         }
     }
@@ -92,6 +146,50 @@ public class Database implements DatabaseWriter{
             System.out.println("An error occurred.");
             e.printStackTrace();
         }
+        
+        // Attempt to load stored credentials from registerEmployees.txt and attach them to parsed employees
+        java.util.ArrayList<String[]> creds = new java.util.ArrayList<>();
+        try (Scanner credReader = new Scanner(new File("registerEmployees.txt"))) {
+            while (credReader.hasNextLine()) {
+                String line = credReader.nextLine().trim();
+                
+                if (line.isEmpty()) continue;
+                
+                try (Scanner s = new Scanner(line)) {
+                    int id = s.nextInt();
+                    String username = s.hasNext() ? s.next() : "";
+                    String salt = s.hasNext() ? s.next() : "";
+                    String hash = s.hasNext() ? s.next() : "";
+                    String pin = s.hasNext() ? s.next() : "";
+                    creds.add(new String[]{String.valueOf(id), username, salt, hash, pin});
+                } catch (Exception ex) {
+                    // skip malformed credential lines
+                }
+            }
+        } catch (Exception e) {
+            // no credentials file yet
+        }
+
+        // attach credentials to employees (search list for matching id)
+        for (BaseEmployee emp : employees) {
+            String[] c = null;
+            for (String[] entry : creds) {
+                try {
+                    if (Integer.parseInt(entry[0]) == emp.getID()) {
+                        c = entry;
+                        break;
+                    }
+                } catch (Exception ex) {
+                    // ignore malformed id
+                }
+            }
+            if (c != null) {
+                if (c.length > 1 && c[1] != null && !c[1].isEmpty()) emp.setUsername(c[1]);
+                if (c.length > 3 && c[2] != null && !c[2].isEmpty() && c[3] != null && !c[3].isEmpty()) emp.setStoredPassword(c[2], c[3]);
+                if (c.length > 4 && c[4] != null && !c[4].isEmpty()) emp.setPin(c[4]);
+            }
+        }
+
         return employees;
     }
     @Override

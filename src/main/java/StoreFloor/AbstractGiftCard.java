@@ -24,4 +24,11 @@ public abstract class AbstractGiftCard implements giftCardLoadable{
     {
         return balance;
     }
+    public void setBalance(double para1)
+    {
+        this.balance = para1;
+    }
+    public String getData() {
+        return cardNumber + " " + this.getBalance();
+    }
 }

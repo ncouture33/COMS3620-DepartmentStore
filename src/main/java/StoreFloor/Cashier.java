@@ -19,4 +19,21 @@ public class Cashier extends Hourly{
     public GiftCard processGiftCard(StorePOS posSystem, String cardNumber, double amount){
         return posSystem.createGiftCard(cardNumber, amount);
     }
+
+    // helpers for authentication using stored username and provided password & PIN
+    public boolean signInToPOS(POSComponent pos, String password, String pin){
+        if(pos == null) return false;
+        String username = this.getUsername();
+        if(username == null) return false;
+        return pos.loginEmployee(username, password, pin);
+    }
+
+    public void signOutOfPOS(POSComponent pos){
+        if(pos == null) return;
+        if(pos.getLoggedInEmployee() == this){
+            pos.logoutEmployee();
+        } else {
+            System.out.println("This cashier is not the one currently logged in on that POS.");
+        }
+    }
 }
