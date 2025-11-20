@@ -36,8 +36,8 @@ public class Util {
                     String cardNumber = scanner.nextLine();
                     System.out.print("Enter gift card amount: ");
                     price = Double.parseDouble(scanner.nextLine());
-                    GiftCard giftCard = new GiftCard(cardNumber);
-                    giftCard.loadAmount(price);
+                    GiftCard giftCard = pos.createGiftCard(cardNumber, price);
+                    //giftCard.loadAmount(price);
                     Item giftCardItem = new Item("Gift Card", price);
                     pos.scanItem(giftCardItem);
                     System.out.println(giftCard.toString());
@@ -53,7 +53,7 @@ public class Util {
         
         pos.applyAwards(customer);
 
-        System.out.print("Pay with (cash/card): ");
+        System.out.print("Pay with (cash/card/giftcard): ");
         String method = scanner.nextLine();
 
         if (method.equalsIgnoreCase("cash")) {
@@ -61,8 +61,13 @@ public class Util {
             double cash = Double.parseDouble(scanner.nextLine());
             PaymentMethod payment = new CashPayment(cash);
             pos.finalizeSale(payment);
-        } else {
+        } else if(method.equalsIgnoreCase("card")) {
             PaymentMethod payment = new CardPayment();
+            pos.finalizeSale(payment);
+        }else {
+            System.out.println("Enter Giftcard Number: ");
+            String card = scanner.nextLine();
+            PaymentMethod payment = new GiftCardPayment(card);
             pos.finalizeSale(payment);
         }
 

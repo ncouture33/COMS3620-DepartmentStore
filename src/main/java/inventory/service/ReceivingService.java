@@ -1,12 +1,17 @@
 package inventory.service;
 
-import inventory.io.InventoryFileStore;
-import inventory.model.*;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
+import inventory.io.InventoryFileStore;
+import inventory.model.Product;
+import inventory.model.PurchaseOrder;
+import inventory.model.PurchaseOrderLine;
+import inventory.model.ReceivingLine;
+import inventory.model.ReceivingRecord;
+import inventory.model.ReceivingStatus;
 
 public class ReceivingService {
     private final InventoryFileStore store;
@@ -92,7 +97,7 @@ public class ReceivingService {
 
             Product p = inv.get(sku);
             if (p == null) {
-                p = new Product(sku, "UNKNOWN", "RECEIVING", 0.0, 0);
+                p = new Product(sku, "UNKNOWN", "RECEIVING", 0.0);
             }
             p.setOnHand(p.getOnHand() + accepted);
             inv.put(p.getSku(), p);
