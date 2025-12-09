@@ -17,7 +17,8 @@ public class Util {
             System.out.println("1: Point of Sale");
             System.out.println("2: Alterations and Tailoring");
             System.out.println("3: Complete Alteration");
-            System.out.println("4: Back");
+            System.out.println("4: Personal Shopping Appointments");
+            System.out.println("5: Back");
             System.out.print("Choice: ");
             String choice = scanner.nextLine();
 
@@ -28,6 +29,9 @@ public class Util {
             } else if (choice.equals("3")) {
                 completeAlteration(scanner);
             } else if (choice.equals("4")) {
+                AppointmentUI appointmentUI = new AppointmentUI(scanner);
+                appointmentUI.showAppointmentMenu();
+            } else if (choice.equals("5")) {
                 break;
             }
         }
