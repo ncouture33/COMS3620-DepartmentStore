@@ -1,7 +1,10 @@
 package StoreFloor;
 
-import java.io.*;
-import java.util.*;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Scanner;
 
 public class GiftCardDatabase {
 
@@ -65,5 +68,32 @@ public class GiftCardDatabase {
 
         input.delete();
         temp.renameTo(input);
+    }
+
+    public static synchronized int getNextGiftCardID(){
+        int nextGiftCardID = 1;
+
+        try (Scanner reader = new Scanner(new File(FILE))) {
+            int maxId = 0;
+            while (reader.hasNextLine()) {
+                String line = reader.nextLine().trim();
+                if (line.isEmpty()) continue;
+                String[] parts = line.split("\\s+");
+                if (parts.length == 0) continue;
+                try {
+                    // first token is the card number (stored as string); try parse as int
+                    int id = Integer.parseInt(parts[0]);
+                    if (id > maxId) maxId = id;
+                } catch (Exception ex) {
+                    // ignore malformed or non-integer card numbers
+                }
+            }
+            nextGiftCardID = Math.max(1, maxId + 1);
+        } catch (Exception e) {
+            // File not found or unreadable
+            nextGiftCardID = 1;
+        }
+
+        return nextGiftCardID;
     }
 }

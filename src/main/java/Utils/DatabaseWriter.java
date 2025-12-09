@@ -8,6 +8,7 @@ import HR.Payroll;
 import HR.Paystub;
 import HR.Schedule;
 import HR.Timeoff;
+import StoreFloor.AlterationRequest;
 import StoreFloor.Customer;
 import StoreFloor.Rewards;
 import StoreOperations.ClockTime;
@@ -61,5 +62,13 @@ public interface DatabaseWriter {
 
     public void updateEmployee(BaseEmployee employee);
 
+    public String generateAlterationTrackingNumber();
+
+    public ArrayList<AlterationRequest> getAlterationRequests();
+
+    public AlterationRequest getAlterationByTrackingNumber(String trackingNumber);
+    public void writeAlterationRequest(AlterationRequest request);
+
+    public boolean updateAlterationStatus(String trackingNumber, String newStatus);
     public BaseEmployee getEmployeeByID(int empID);
 }
