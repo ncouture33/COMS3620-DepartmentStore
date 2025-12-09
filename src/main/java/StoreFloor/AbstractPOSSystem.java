@@ -1,10 +1,9 @@
 package StoreFloor;
 
-import HR.BaseEmployee;
-import Utils.Database;
 import java.util.ArrayList;
 import java.util.List;
 
+import HR.BaseEmployee;
 import Utils.Database;
 import Utils.DatabaseWriter;
 
@@ -14,6 +13,8 @@ public abstract class AbstractPOSSystem implements POSComponent{
     
     protected double totalPaid;
     protected double changeReturned;
+    // Gift cards created during the current transaction but not yet persisted
+    protected java.util.List<GiftCard> pendingGiftCards = new java.util.ArrayList<>();
 
     // currently logged-in employee for this terminal
     protected BaseEmployee loggedInEmployee;
@@ -126,5 +127,6 @@ public abstract class AbstractPOSSystem implements POSComponent{
         total = 0;total =0;
         totalPaid = 0;
         changeReturned =0; 
+        pendingGiftCards.clear();
     }
 }
