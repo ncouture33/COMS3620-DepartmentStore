@@ -1,6 +1,7 @@
 package StoreFloor;
 
 import HR.Hourly;
+import java.util.Scanner;
 
 public class Cashier extends Hourly{
    public Cashier(int id, String fName, String lName, int DOB, int social, double hourlyRate, double overtimeRate) {
@@ -35,5 +36,28 @@ public class Cashier extends Hourly{
         } else {
             System.out.println("This cashier is not the one currently logged in on that POS.");
         }
+    }
+
+    /**
+     * Initiates a return/refund process for a customer
+     * Use Case #19: Main Success Scenario
+     */
+    public boolean processReturn(Customer customer, RefundExchangeProcessor processor, Scanner input) {
+        System.out.print("Enter the transaction ID from the receipt: ");
+        String transactionId = input.nextLine();
+        
+        return processor.processReturnExchange(this, customer, transactionId, input);
+    }
+
+    /**
+     * Initiates an exchange process for a customer
+     * Use Case #19: Alternate Flow
+     */
+    public boolean processExchange(Customer customer, RefundExchangeProcessor processor, 
+                                   Scanner input, StorePOS posSystem) {
+        System.out.print("Enter the transaction ID from the receipt: ");
+        String transactionId = input.nextLine();
+        
+        return processor.processExchange(this, customer, transactionId, input, posSystem);
     }
 }
