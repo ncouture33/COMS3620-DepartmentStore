@@ -15,7 +15,8 @@ public class Util {
             System.out.println("\nStore Floor - choose an option:");
             System.out.println("1: Point of Sale");
             System.out.println("2: Alterations and Tailoring");
-            System.out.println("3: Back");
+            System.out.println("3: Complete Alteration");
+            System.out.println("4: Back");
             System.out.print("Choice: ");
             String choice = scanner.nextLine();
             
@@ -24,6 +25,8 @@ public class Util {
             } else if (choice.equals("2")) {
                 runAlterations(scanner);
             } else if (choice.equals("3")) {
+                completeAlteration(scanner);
+            } else if (choice.equals("4")) {
                 break;
             }
         }
@@ -253,7 +256,7 @@ public class Util {
                 measurements,
                 cost,
                 completionDate,
-                "Pending");
+                "In Progress");
 
         database.writeAlterationRequest(request);
 
@@ -266,9 +269,54 @@ public class Util {
         System.out.println("Measurements: " + measurements);
         System.out.println("Cost: $" + String.format("%.2f", cost));
         System.out.println("Estimated Completion: " + completionDate);
-        System.out.println("Status: Pending");
+        System.out.println("Status: In Progress");
         System.out.println("\nGarment logged in alterations inventory.");
         System.out.println("Request added to tailor's work queue.");
         System.out.println("Customer copy of claim ticket generated.\n");
+    }
+
+    public static void completeAlteration(Scanner scanner) {
+        System.out.println("\n--- Complete Alteration ---");
+        DatabaseWriter database = new Database();
+
+        System.out.print("Enter tracking number: ");
+        String trackingNumber = scanner.nextLine().trim();
+
+        AlterationRequest request = database.getAlterationByTrackingNumber(trackingNumber);
+        
+        if (request == null) {
+            System.out.println("Error: Tracking number '" + trackingNumber + "' not found.");
+            return;
+        }
+
+        if (request.getStatus().equals("Completed")) {
+            System.out.println("This alteration is already completed.");
+            return;
+        }
+
+        System.out.println("\nAlteration Details:");
+        System.out.println("Customer: " + request.getCustomerName());
+        System.out.println("Phone: " + request.getCustomerPhone());
+        System.out.println("Item SKU: " + request.getItemSKU());
+        System.out.println("Alterations: " + request.getAlterationInstructions());
+        System.out.println("Cost: $" + String.format("%.2f", request.getCost()));
+        System.out.println("Current Status: " + request.getStatus());
+
+        System.out.print("\nMark this alteration as completed? (yes/no): ");
+        boolean confirm = scanner.nextLine().trim().equalsIgnoreCase("yes");
+
+        if (!confirm) {
+            System.out.println("Operation cancelled.");
+            return;
+        }
+
+        boolean success = database.updateAlterationStatus(trackingNumber, "Completed");
+        
+        if (success) {
+            System.out.println("\nAlteration " + trackingNumber + " marked as completed.");
+            System.out.println("Customer " + request.getCustomerName() + " can pick up their item.");
+        } else {
+            System.out.println("\nError: Failed to update alteration status.");
+        }
     }
 }

@@ -903,4 +903,67 @@ public class Database implements DatabaseWriter {
         }
         return requests;
     }
+
+    @Override
+    public AlterationRequest getAlterationByTrackingNumber(String trackingNumber) {
+        ArrayList<AlterationRequest> requests = getAlterationRequests();
+        for (AlterationRequest request : requests) {
+            if (request.getTrackingNumber().equals(trackingNumber)) {
+                return request;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public boolean updateAlterationStatus(String trackingNumber, String newStatus) {
+        File inputFile = new File("alterations.txt");
+        File tempFile = new File("alterations_temp.txt");
+
+        boolean found = false;
+
+        try (
+                Scanner myReader = new Scanner(inputFile);
+                PrintWriter writer = new PrintWriter(tempFile);) {
+            while (myReader.hasNextLine()) {
+                String data = myReader.nextLine().trim();
+                if (data.isEmpty()) {
+                    continue;
+                }
+                String[] parts = data.split("\\|", -1);
+                if (parts.length != 10) {
+                    writer.println(data);
+                    continue;
+                }
+
+                if (parts[0].equals(trackingNumber)) {
+                    parts[9] = newStatus;
+                    found = true;
+                }
+
+                writer.println(String.join("|", parts));
+            }
+        } catch (Exception e) {
+            System.out.println("An error occurred while updating alteration status.");
+            e.printStackTrace();
+            return false;
+        }
+
+        if (!found) {
+            tempFile.delete();
+            return false;
+        }
+
+        if (!inputFile.delete()) {
+            System.out.println("Could not delete original alterations file.");
+            tempFile.delete();
+            return false;
+        }
+        if (!tempFile.renameTo(inputFile)) {
+            System.out.println("Could not rename temp alterations file.");
+            return false;
+        }
+
+        return true;
+    }
 }

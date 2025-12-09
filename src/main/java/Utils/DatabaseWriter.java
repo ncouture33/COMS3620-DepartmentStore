@@ -70,4 +70,8 @@ public interface DatabaseWriter {
     public String generateAlterationTrackingNumber();
 
     public ArrayList<AlterationRequest> getAlterationRequests();
+
+    public AlterationRequest getAlterationByTrackingNumber(String trackingNumber);
+
+    public boolean updateAlterationStatus(String trackingNumber, String newStatus);
 }
