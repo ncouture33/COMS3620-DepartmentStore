@@ -1,10 +1,10 @@
 package StoreFloor;
 
-import java.nio.file.Paths;
-import java.util.Map;
 import java.util.Scanner;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import Utils.Database;
 import Utils.DatabaseWriter;
@@ -12,10 +12,7 @@ import inventory.io.InventoryFileStore;
 import inventory.model.Product;
 
 public class Util {
-<<<<<<< HEAD
-    /**
-     * Main menu for cashier to choose between sale, return, or exchange
-     */
+
     /**
      * Display items in a transaction with quantity information
      * Groups duplicate items and shows quantity
@@ -73,17 +70,20 @@ public class Util {
             System.out.println("\n" + "=".repeat(50));
             System.out.println("CASHIER MENU");
             System.out.println("=".repeat(50));
-            System.out.println("1. Process a Sale");
-            System.out.println("2. Process a Return/Refund");
-            System.out.println("3. Process an Exchange");
-            System.out.println("4. Exit");
-            System.out.print("\nSelect an option (1-4): ");
-            
+            System.out.println("1: Process a Sale");
+            System.out.println("2: Process a Return/Refund");
+            System.out.println("3: Process an Exchange");
+            System.out.println("4: Alterations and Tailoring");
+            System.out.println("5: Complete Alteration");
+            System.out.println("6: Personal Shopping Appointments");
+            System.out.println("7: Exit");
+            System.out.print("\nSelect an option (1-7): ");
+
             String choice = scanner.nextLine().trim();
-            
+                        
             switch (choice) {
                 case "1":
-                    runSales(scanner);
+                    runPOS(scanner);
                     break;
                 case "2":
                     processReturn(scanner);
@@ -92,38 +92,20 @@ public class Util {
                     processExchange(scanner);
                     break;
                 case "4":
+                    runAlterations(scanner);
+                    break;
+                case "5":
+                    completeAlteration(scanner);
+                    break;
+                case "6":
+                    AppointmentUI appointmentUI = new AppointmentUI(scanner);
+                    appointmentUI.showAppointmentMenu();
+                    break;
+                case "7":
                     System.out.println("Exiting cashier menu.");
                     return;
                 default:
                     System.out.println("Invalid choice. Please select 1-4.");
-            }
-        }
-    }
-=======
->>>>>>> 577ef74d85494bff18cb220168cc9a6f4db0a82a
-
-    public static void runSales(Scanner scanner) {
-        while (true) {
-            System.out.println("\nStore Floor - choose an option:");
-            System.out.println("1: Point of Sale");
-            System.out.println("2: Alterations and Tailoring");
-            System.out.println("3: Complete Alteration");
-            System.out.println("4: Personal Shopping Appointments");
-            System.out.println("5: Back");
-            System.out.print("Choice: ");
-            String choice = scanner.nextLine();
-
-            if (choice.equals("1")) {
-                runPOS(scanner);
-            } else if (choice.equals("2")) {
-                runAlterations(scanner);
-            } else if (choice.equals("3")) {
-                completeAlteration(scanner);
-            } else if (choice.equals("4")) {
-                AppointmentUI appointmentUI = new AppointmentUI(scanner);
-                appointmentUI.showAppointmentMenu();
-            } else if (choice.equals("5")) {
-                break;
             }
         }
     }
@@ -223,62 +205,6 @@ public class Util {
         System.out.println("Transaction complete.\n");
     }
 
-    public static double processPayment(Scanner scanner, double totalAmount) {
-        double paidSoFar = 0.0;
-        double remaining = totalAmount;
-
-        while (paidSoFar < remaining) {
-            System.out.print("Pay with (cash/card/giftcard) or type 'cancel' to abort: ");
-            String method = scanner.nextLine().trim();
-            if (method.equalsIgnoreCase("cancel")) {
-                return -1;
-            }
-
-            double toPay = remaining - paidSoFar;
-
-            if (method.equalsIgnoreCase("cash")) {
-                System.out.print("Enter cash amount: ");
-                String line = scanner.nextLine().trim();
-                double cash;
-                try {
-                    cash = Double.parseDouble(line);
-                } catch (NumberFormatException nfe) {
-                    System.out.println("Invalid amount. Please enter a numeric value.");
-                    continue;
-                }
-                CashPayment cp = new CashPayment(cash);
-                double ret = cp.processPayment(toPay);
-                double applied = Math.min(ret, toPay);
-                paidSoFar += applied;
-                pos.setPaymentMethod("CASH");
-                if (ret > applied) {
-                    double change = ret - applied;
-                    System.out.println("Change returned: $" + String.format("%.2f", change));
-                }
-            } else if (method.equalsIgnoreCase("card")) {
-                CardPayment cardPay = new CardPayment();
-                double ret = cardPay.processPayment(toPay);
-                double applied = Math.min(ret, toPay);
-                paidSoFar += applied;
-                pos.setPaymentMethod("CARD");
-            } else if (method.equalsIgnoreCase("giftcard")) {
-                System.out.print("Enter Giftcard Number: ");
-                String card = scanner.nextLine().trim();
-                GiftCardPayment gp = new GiftCardPayment(card);
-                double ret = gp.processPayment(toPay);
-                double applied = Math.min(ret, toPay);
-                paidSoFar += applied;
-                pos.setPaymentMethod("GIFTCARD");
-            } else {
-                System.out.println("Unknown payment method. Try again.");
-            }
-            System.out.println("Paid so far: $" + String.format("%.2f", paidSoFar) + ", Remaining: $" + String.format("%.2f", Math.max(0, remaining - paidSoFar)));
-        }
-
-        return paidSoFar;
-    }
-
-<<<<<<< HEAD
     /**
      * Handles the return/refund process for a customer
      */
@@ -465,7 +391,6 @@ public class Util {
 
     /**
      * Handles the exchange process for a customer
-     * Use Case #19: Alternate Flow
      */
     public static void processExchange(Scanner scanner) {
         System.out.println("\n--- Exchange Process ---");
@@ -630,8 +555,7 @@ public class Util {
         
         System.out.println("\nExchange process completed successfully.\n");
     }
-}
-=======
+
     public static void runAlterations(Scanner scanner) {
         System.out.println("\n--- Alterations and Tailoring Services ---");
         DatabaseWriter database = new Database();
@@ -769,5 +693,57 @@ public class Util {
             System.out.println("\nError: Failed to update alteration status.");
         }
     }
+
+        public static double processPayment(Scanner scanner, double totalAmount) {
+        double paidSoFar = 0.0;
+        double remaining = totalAmount;
+
+        while (paidSoFar < remaining) {
+            System.out.print("Pay with (cash/card/giftcard) or type 'cancel' to abort: ");
+            String method = scanner.nextLine().trim();
+            if (method.equalsIgnoreCase("cancel")) {
+                return -1;
+            }
+
+            double toPay = remaining - paidSoFar;
+
+            if (method.equalsIgnoreCase("cash")) {
+                System.out.print("Enter cash amount: ");
+                String line = scanner.nextLine().trim();
+                double cash;
+                try {
+                    cash = Double.parseDouble(line);
+                } catch (NumberFormatException nfe) {
+                    System.out.println("Invalid amount. Please enter a numeric value.");
+                    continue;
+                }
+                CashPayment cp = new CashPayment(cash);
+                double ret = cp.processPayment(toPay);
+                double applied = Math.min(ret, toPay);
+                paidSoFar += applied;
+                if (ret > applied) {
+                    double change = ret - applied;
+                    System.out.println("Change returned: $" + String.format("%.2f", change));
+                }
+            } else if (method.equalsIgnoreCase("card")) {
+                CardPayment cardPay = new CardPayment();
+                double ret = cardPay.processPayment(toPay);
+                double applied = Math.min(ret, toPay);
+                paidSoFar += applied;
+            } else if (method.equalsIgnoreCase("giftcard")) {
+                System.out.print("Enter Giftcard Number: ");
+                String card = scanner.nextLine().trim();
+                GiftCardPayment gp = new GiftCardPayment(card);
+                double ret = gp.processPayment(toPay);
+                double applied = Math.min(ret, toPay);
+                paidSoFar += applied;
+            } else {
+                System.out.println("Unknown payment method. Try again.");
+            }
+            System.out.println("Paid so far: $" + String.format("%.2f", paidSoFar) + ", Remaining: $" + String.format("%.2f", Math.max(0, remaining - paidSoFar)));
+        }
+
+        return paidSoFar;
+    }
+
 }
->>>>>>> 577ef74d85494bff18cb220168cc9a6f4db0a82a
