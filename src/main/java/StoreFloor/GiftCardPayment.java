@@ -15,22 +15,23 @@ public class GiftCardPayment implements PaymentMethod {
 
         if (card == null) {
             System.out.println("Gift card not found!");
-            return -1;
+            return 0;
+        }
+        double available = card.getBalance();
+        double toUse = Math.min(available, amount);
+        if (toUse <= 0) {
+            System.out.println("Gift card has no balance.");
+            return 0;
         }
 
-        if (card.getBalance() < amount) {
-            System.out.println("Gift card does not have enough balance.");
-            return -1;
-        }
+        // Deduct the available amount (partial or full)
+        card.useAmount(toUse);
 
-        // Deduct the amount
-        card.useAmount(amount);
-
-        // Update database
+        // Update database with new balance
         GiftCardDatabase.updateGiftCard(card);
 
-        System.out.println("Gift card accepted! Remaining balance: $" + card.getBalance());
+        System.out.println("Gift card applied: $" + String.format("%.2f", toUse) + ". Remaining balance: $" + String.format("%.2f", card.getBalance()));
 
-        return amount;
+        return toUse;
     }
 }

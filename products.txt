@@ -1,3 +1,4 @@
 SKU123|Red Apples|Produce|1.00|0
 SKU200|Paper Towels|Cleaning|2.49|0
 SKU777|USB Cable|Electronics|5.99|0
+SKU999|Black Dress|Clothing|120.00|0
