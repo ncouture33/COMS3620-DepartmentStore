@@ -1,12 +1,35 @@
 package StoreFloor;
 
+import java.nio.file.Paths;
+import java.util.Map;
 import java.util.Scanner;
 
 import Utils.Database;
 import Utils.DatabaseWriter;
+import inventory.io.InventoryFileStore;
+import inventory.model.Product;
 
 public class Util {
     public static void runSales(Scanner scanner) {
+        while (true) {
+            System.out.println("\nStore Floor - choose an option:");
+            System.out.println("1: Point of Sale");
+            System.out.println("2: Alterations and Tailoring");
+            System.out.println("3: Back");
+            System.out.print("Choice: ");
+            String choice = scanner.nextLine();
+            
+            if (choice.equals("1")) {
+                runPOS(scanner);
+            } else if (choice.equals("2")) {
+                runAlterations(scanner);
+            } else if (choice.equals("3")) {
+                break;
+            }
+        }
+    }
+
+    public static void runPOS(Scanner scanner) {
         System.out.println("\n--- Point of Sale ---");
         DatabaseWriter database = new Database();
 
@@ -93,15 +116,26 @@ public class Util {
         
         pos.applyAwards(customer);
 
+        double paidSoFar = processPayment(scanner, pos.total);
+        if (paidSoFar < 0) {
+            System.out.println("Payment cancelled. Transaction aborted.");
+            return;
+        }
+
+        pos.finalizeSale(paidSoFar, customer);
+
+        System.out.println("Transaction complete.\n");
+    }
+
+    public static double processPayment(Scanner scanner, double totalAmount) {
         double paidSoFar = 0.0;
-        double remaining = pos.total; // package-private access: use getter? total is protected; using pos.total directly in same package is ok
+        double remaining = totalAmount;
 
         while (paidSoFar < remaining) {
             System.out.print("Pay with (cash/card/giftcard) or type 'cancel' to abort: ");
             String method = scanner.nextLine().trim();
-            if (method.equalsIgnoreCase("cancel")){
-                System.out.println("Payment cancelled. Transaction aborted.");
-                return;
+            if (method.equalsIgnoreCase("cancel")) {
+                return -1;
             }
 
             double toPay = remaining - paidSoFar;
@@ -142,9 +176,99 @@ public class Util {
             System.out.println("Paid so far: $" + String.format("%.2f", paidSoFar) + ", Remaining: $" + String.format("%.2f", Math.max(0, remaining - paidSoFar)));
         }
 
-        // All or enough payment collected — finalize sale
-        pos.finalizeSale(paidSoFar, customer);
+        return paidSoFar;
+    }
 
-        System.out.println("Transaction complete.\n");
+    public static void runAlterations(Scanner scanner) {
+        System.out.println("\n--- Alterations and Tailoring Services ---");
+        DatabaseWriter database = new Database();
+
+        System.out.print("Enter customer name: ");
+        String customerName = scanner.nextLine().trim();
+
+        System.out.print("Enter customer phone number: ");
+        String customerPhone = scanner.nextLine().trim();
+
+        System.out.print("Enter item SKU: ");
+        String itemSKU = scanner.nextLine().trim();
+
+        InventoryFileStore inventoryStore = new InventoryFileStore(Paths.get("."));
+        Map<String, Product> productCatalog = inventoryStore.loadProductCatalog();
+        
+        if (!productCatalog.containsKey(itemSKU)) {
+            System.out.println("Error: SKU '" + itemSKU + "' not found in the system.");
+            System.out.println("Alteration request cancelled.");
+            return;
+        }
+        
+        Product product = productCatalog.get(itemSKU);
+        System.out.println("SKU validated: " + product.getName() + " - $" + product.getUnitPrice());
+
+        System.out.print("Enter purchase date: ");
+        String purchaseDate = scanner.nextLine().trim();
+
+        System.out.println("\n--- Tailor Consultation ---");
+
+        System.out.print("Enter alteration instructions: ");
+        String alterationInstructions = scanner.nextLine().trim();
+
+        System.out.print("Enter measurements: ");
+        String measurements = scanner.nextLine().trim();
+
+        System.out.print("Enter estimated cost: ");
+        double cost;
+        try {
+            cost = Double.parseDouble(scanner.nextLine().trim());
+        } catch (NumberFormatException nfe) {
+            System.out.println("Invalid cost. Aborting alteration request.");
+            return;
+        }
+
+        System.out.print("Enter estimated completion date: ");
+        String completionDate = scanner.nextLine().trim();
+
+        System.out.print("Does the customer approve the alterations and cost? (yes/no): ");
+        boolean approved = scanner.nextLine().trim().equalsIgnoreCase("yes");
+
+        if (!approved) {
+            System.out.println("Customer declined alterations. Request cancelled.");
+            return;
+        }
+
+        double paidAmount = processPayment(scanner, cost);
+        if (paidAmount < 0) {
+            System.out.println("Payment cancelled. Alteration request aborted.");
+            return;
+        }
+
+        String trackingNumber = database.generateAlterationTrackingNumber();
+
+        AlterationRequest request = new AlterationRequest(
+                trackingNumber,
+                customerName,
+                customerPhone,
+                itemSKU,
+                purchaseDate,
+                alterationInstructions,
+                measurements,
+                cost,
+                completionDate,
+                "Pending");
+
+        database.writeAlterationRequest(request);
+
+        System.out.println("\n--- Alteration Claim Ticket ---");
+        System.out.println("Tracking Number: " + trackingNumber);
+        System.out.println("Customer: " + customerName);
+        System.out.println("Phone: " + customerPhone);
+        System.out.println("Item SKU: " + itemSKU);
+        System.out.println("Alterations: " + alterationInstructions);
+        System.out.println("Measurements: " + measurements);
+        System.out.println("Cost: $" + String.format("%.2f", cost));
+        System.out.println("Estimated Completion: " + completionDate);
+        System.out.println("Status: Pending");
+        System.out.println("\nGarment logged in alterations inventory.");
+        System.out.println("Request added to tailor's work queue.");
+        System.out.println("Customer copy of claim ticket generated.\n");
     }
 }

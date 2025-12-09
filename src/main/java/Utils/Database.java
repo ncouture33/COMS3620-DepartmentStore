@@ -26,9 +26,10 @@ import HR.Schedule;
 import HR.Shift;
 import HR.TimeCard;
 import HR.Timeoff;
-import StoreOperations.ClockTime;
+import StoreFloor.AlterationRequest;
 import StoreFloor.Customer;
 import StoreFloor.Rewards;
+import StoreOperations.ClockTime;
 
 public class Database implements DatabaseWriter {
 
@@ -826,5 +827,80 @@ public class Database implements DatabaseWriter {
             System.out.println("An error occurred.");
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void writeAlterationRequest(AlterationRequest request) {
+        try (FileWriter fwAlteration = new FileWriter("alterations.txt", true)) {
+            fwAlteration.write(request.getData() + "\n");
+            System.out.println("Successfully appended to the alterations file.");
+        } catch (IOException e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public String generateAlterationTrackingNumber() {
+        int maxNum = 0;
+        try {
+            ArrayList<AlterationRequest> requests = getAlterationRequests();
+            for (AlterationRequest r : requests) {
+                try {
+                    String trackingNum = r.getTrackingNumber();
+                    if (trackingNum.startsWith("ALT-")) {
+                        int num = Integer.parseInt(trackingNum.substring(4));
+                        if (num > maxNum) {
+                            maxNum = num;
+                        }
+                    }
+                } catch (NumberFormatException e) {
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        }
+        return "ALT-" + (maxNum + 1);
+    }
+
+    @Override
+    public ArrayList<AlterationRequest> getAlterationRequests() {
+        ArrayList<AlterationRequest> requests = new ArrayList<>();
+        File file = new File("alterations.txt");
+        if (!file.exists()) {
+            return requests;
+        }
+        try (Scanner myReader = new Scanner(file)) {
+            while (myReader.hasNextLine()) {
+                String data = myReader.nextLine().trim();
+                if (data.isEmpty()) {
+                    continue;
+                }
+                String[] parts = data.split("\\|", -1);
+                if (parts.length != 10) {
+                    System.out.println("Invalid alteration record: " + data);
+                    continue;
+                }
+                String trackingNumber = parts[0];
+                String customerName = parts[1];
+                String customerPhone = parts[2];
+                String itemSKU = parts[3];
+                String purchaseDate = parts[4];
+                String alterationInstructions = parts[5];
+                String measurements = parts[6];
+                double cost = Double.parseDouble(parts[7]);
+                String completionDate = parts[8];
+                String status = parts[9];
+                AlterationRequest request = new AlterationRequest(trackingNumber, customerName, customerPhone,
+                        itemSKU, purchaseDate, alterationInstructions,
+                        measurements, cost, completionDate, status);
+                requests.add(request);
+            }
+        } catch (Exception e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        }
+        return requests;
     }
 }

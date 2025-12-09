@@ -5,12 +5,9 @@ import java.util.Scanner;
 
 import HR.BaseEmployee;
 import HR.TimeCard;
-import java.util.Scanner;
+import StoreFloor.StorePOS;
 import Utils.Database;
 import Utils.DatabaseWriter;
-import HR.BaseEmployee;
-import Utils.Database;
-import StoreFloor.StorePOS;
 // no direct POS item/payment handling here anymore; StoreFloor will use the active POS
 
 /**
