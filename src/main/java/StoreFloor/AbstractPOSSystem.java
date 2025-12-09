@@ -1,10 +1,9 @@
 package StoreFloor;
 
-import HR.BaseEmployee;
-import Utils.Database;
 import java.util.ArrayList;
 import java.util.List;
 
+import HR.BaseEmployee;
 import Utils.Database;
 import Utils.DatabaseWriter;
 

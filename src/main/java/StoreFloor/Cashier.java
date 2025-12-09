@@ -5,7 +5,7 @@ import java.util.Scanner;
 
 public class Cashier extends Hourly{
    public Cashier(int id, String fName, String lName, int DOB, int social, double hourlyRate, double overtimeRate) {
-        super(id, fName, lName, DOB, social, hourlyRate, overtimeRate);
+        super(id, fName, lName, DOB, social, hourlyRate, overtimeRate,"general", "cashier");
     }
 
     public void ringUpItem( Item item, POSComponent posSystem){

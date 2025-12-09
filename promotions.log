@@ -1,0 +1,4 @@
+2025-12-08T19:53:37.199317600Z | EMP_ID=4 | EMP=Quade Garner | MGR=Manager | ROLE=Lead | SAL=20.00 | DEPT=G | SUCCESS
+2025-12-08T19:57:24.567626800Z | EMP_ID=4 | EMP=Quade Garner | MGR=Manager | ROLE=Cashier | SAL=20.00 | DEPT=General | SUCCESS
+2025-12-08T20:12:15.138530300Z | EMP_ID=4 | EMP=Quade Garner | MGR=Manager | ROLE=Lead Cashier | SAL=25.00 | DEPT=Gerenal | SUCCESS
+2025-12-09T06:27:49.235749200Z | EMP_ID=4 | EMP=Quade Garner | MGR=Manager | ROLE=Lead Cashier | SAL=25.00 | DEPT=General | SUCCESS

@@ -1,13 +1,18 @@
 package StoreFloor;
 
+import java.nio.file.Paths;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.ArrayList;
 import java.util.List;
 
 import Utils.Database;
 import Utils.DatabaseWriter;
+import inventory.io.InventoryFileStore;
+import inventory.model.Product;
 
 public class Util {
+<<<<<<< HEAD
     /**
      * Main menu for cashier to choose between sale, return, or exchange
      */
@@ -94,8 +99,36 @@ public class Util {
             }
         }
     }
+=======
+>>>>>>> 577ef74d85494bff18cb220168cc9a6f4db0a82a
 
     public static void runSales(Scanner scanner) {
+        while (true) {
+            System.out.println("\nStore Floor - choose an option:");
+            System.out.println("1: Point of Sale");
+            System.out.println("2: Alterations and Tailoring");
+            System.out.println("3: Complete Alteration");
+            System.out.println("4: Personal Shopping Appointments");
+            System.out.println("5: Back");
+            System.out.print("Choice: ");
+            String choice = scanner.nextLine();
+
+            if (choice.equals("1")) {
+                runPOS(scanner);
+            } else if (choice.equals("2")) {
+                runAlterations(scanner);
+            } else if (choice.equals("3")) {
+                completeAlteration(scanner);
+            } else if (choice.equals("4")) {
+                AppointmentUI appointmentUI = new AppointmentUI(scanner);
+                appointmentUI.showAppointmentMenu();
+            } else if (choice.equals("5")) {
+                break;
+            }
+        }
+    }
+
+    public static void runPOS(Scanner scanner) {
         System.out.println("\n--- Point of Sale ---");
         DatabaseWriter database = new Database();
 
@@ -113,23 +146,21 @@ public class Util {
         boolean member = scanner.nextLine().equalsIgnoreCase("yes");
         Customer customer = new Customer(name, member);
 
-        if (member){
+        if (member) {
             System.out.print("Enter phone number: ");
             String phoneNumber = scanner.nextLine();
-            
+
             Rewards rewards = database.getCustomerRewards(phoneNumber);
-            if (rewards == null){
+            if (rewards == null) {
                 System.out.println("No rewards account found for phone number " + phoneNumber);
-            }
-            else{
+            } else {
                 customer.setRewards(rewards);
                 System.out.println("Rewards ID " + rewards.getId() + " linked to customer " + name + " with phone number " + phoneNumber);
-            }  
-        }
-        else{
+            }
+        } else {
             System.out.print("Would you like to join the rewards program? (yes/no): ");
             boolean answer = scanner.nextLine().equalsIgnoreCase("yes");
-            if (answer){
+            if (answer) {
                 //add the customer to the rewards program
                 System.out.print("Enter phone number: ");
                 String phoneNumber = scanner.nextLine();
@@ -145,8 +176,6 @@ public class Util {
             }
         }
 
-        
-
         pos.startTransaction();
 
         // allocate a per-transaction sequence for gift card IDs so multiple cards
@@ -156,11 +185,12 @@ public class Util {
         while (true) {
             System.out.print("Enter item name (or 'done' to finish, or 'giftcard' to buy a gift card): ");
             String itemName = scanner.nextLine();
-            if (itemName.equalsIgnoreCase("done"))
+            if (itemName.equalsIgnoreCase("done")) {
                 break;
-        
+            }
+
             double price = 0;
-        
+
             if (itemName.equalsIgnoreCase("giftcard")) {
                 String cardNumber = String.valueOf(nextGiftCardId++);
                 System.out.print("Enter gift card amount: ");
@@ -179,18 +209,29 @@ public class Util {
                 pos.scanItem(item);
             }
         }
-        
+
         pos.applyAwards(customer);
 
+        double paidSoFar = processPayment(scanner, pos.total);
+        if (paidSoFar < 0) {
+            System.out.println("Payment cancelled. Transaction aborted.");
+            return;
+        }
+
+        pos.finalizeSale(paidSoFar, customer);
+
+        System.out.println("Transaction complete.\n");
+    }
+
+    public static double processPayment(Scanner scanner, double totalAmount) {
         double paidSoFar = 0.0;
-        double remaining = pos.total; // package-private access: use getter? total is protected; using pos.total directly in same package is ok
+        double remaining = totalAmount;
 
         while (paidSoFar < remaining) {
             System.out.print("Pay with (cash/card/giftcard) or type 'cancel' to abort: ");
             String method = scanner.nextLine().trim();
-            if (method.equalsIgnoreCase("cancel")){
-                System.out.println("Payment cancelled. Transaction aborted.");
-                return;
+            if (method.equalsIgnoreCase("cancel")) {
+                return -1;
             }
 
             double toPay = remaining - paidSoFar;
@@ -234,12 +275,10 @@ public class Util {
             System.out.println("Paid so far: $" + String.format("%.2f", paidSoFar) + ", Remaining: $" + String.format("%.2f", Math.max(0, remaining - paidSoFar)));
         }
 
-        // All or enough payment collected — finalize sale
-        pos.finalizeSale(paidSoFar, customer);
-
-        System.out.println("Transaction complete.\n");
+        return paidSoFar;
     }
 
+<<<<<<< HEAD
     /**
      * Handles the return/refund process for a customer
      */
@@ -592,3 +631,143 @@ public class Util {
         System.out.println("\nExchange process completed successfully.\n");
     }
 }
+=======
+    public static void runAlterations(Scanner scanner) {
+        System.out.println("\n--- Alterations and Tailoring Services ---");
+        DatabaseWriter database = new Database();
+
+        System.out.print("Enter customer name: ");
+        String customerName = scanner.nextLine().trim();
+
+        System.out.print("Enter customer phone number: ");
+        String customerPhone = scanner.nextLine().trim();
+
+        System.out.print("Enter item SKU: ");
+        String itemSKU = scanner.nextLine().trim();
+
+        InventoryFileStore inventoryStore = new InventoryFileStore(Paths.get("."));
+        Map<String, Product> productCatalog = inventoryStore.loadProductCatalog();
+
+        if (!productCatalog.containsKey(itemSKU)) {
+            System.out.println("Error: SKU '" + itemSKU + "' not found in the system.");
+            System.out.println("Alteration request cancelled.");
+            return;
+        }
+
+        Product product = productCatalog.get(itemSKU);
+        System.out.println("SKU validated: " + product.getName() + " - $" + product.getUnitPrice());
+
+        System.out.print("Enter purchase date: ");
+        String purchaseDate = scanner.nextLine().trim();
+
+        System.out.println("\n--- Tailor Consultation ---");
+
+        System.out.print("Enter alteration instructions: ");
+        String alterationInstructions = scanner.nextLine().trim();
+
+        System.out.print("Enter measurements: ");
+        String measurements = scanner.nextLine().trim();
+
+        System.out.print("Enter estimated cost: ");
+        double cost;
+        try {
+            cost = Double.parseDouble(scanner.nextLine().trim());
+        } catch (NumberFormatException nfe) {
+            System.out.println("Invalid cost. Aborting alteration request.");
+            return;
+        }
+
+        System.out.print("Enter estimated completion date: ");
+        String completionDate = scanner.nextLine().trim();
+
+        System.out.print("Does the customer approve the alterations and cost? (yes/no): ");
+        boolean approved = scanner.nextLine().trim().equalsIgnoreCase("yes");
+
+        if (!approved) {
+            System.out.println("Customer declined alterations. Request cancelled.");
+            return;
+        }
+
+        double paidAmount = processPayment(scanner, cost);
+        if (paidAmount < 0) {
+            System.out.println("Payment cancelled. Alteration request aborted.");
+            return;
+        }
+
+        String trackingNumber = database.generateAlterationTrackingNumber();
+
+        AlterationRequest request = new AlterationRequest(
+                trackingNumber,
+                customerName,
+                customerPhone,
+                itemSKU,
+                purchaseDate,
+                alterationInstructions,
+                measurements,
+                cost,
+                completionDate,
+                "In Progress");
+
+        database.writeAlterationRequest(request);
+
+        System.out.println("\n--- Alteration Claim Ticket ---");
+        System.out.println("Tracking Number: " + trackingNumber);
+        System.out.println("Customer: " + customerName);
+        System.out.println("Phone: " + customerPhone);
+        System.out.println("Item SKU: " + itemSKU);
+        System.out.println("Alterations: " + alterationInstructions);
+        System.out.println("Measurements: " + measurements);
+        System.out.println("Cost: $" + String.format("%.2f", cost));
+        System.out.println("Estimated Completion: " + completionDate);
+        System.out.println("Status: In Progress");
+        System.out.println("\nGarment logged in alterations inventory.");
+        System.out.println("Request added to tailor's work queue.");
+        System.out.println("Customer copy of claim ticket generated.\n");
+    }
+
+    public static void completeAlteration(Scanner scanner) {
+        System.out.println("\n--- Complete Alteration ---");
+        DatabaseWriter database = new Database();
+
+        System.out.print("Enter tracking number: ");
+        String trackingNumber = scanner.nextLine().trim();
+
+        AlterationRequest request = database.getAlterationByTrackingNumber(trackingNumber);
+
+        if (request == null) {
+            System.out.println("Error: Tracking number '" + trackingNumber + "' not found.");
+            return;
+        }
+
+        if (request.getStatus().equals("Completed")) {
+            System.out.println("This alteration is already completed.");
+            return;
+        }
+
+        System.out.println("\nAlteration Details:");
+        System.out.println("Customer: " + request.getCustomerName());
+        System.out.println("Phone: " + request.getCustomerPhone());
+        System.out.println("Item SKU: " + request.getItemSKU());
+        System.out.println("Alterations: " + request.getAlterationInstructions());
+        System.out.println("Cost: $" + String.format("%.2f", request.getCost()));
+        System.out.println("Current Status: " + request.getStatus());
+
+        System.out.print("\nMark this alteration as completed? (yes/no): ");
+        boolean confirm = scanner.nextLine().trim().equalsIgnoreCase("yes");
+
+        if (!confirm) {
+            System.out.println("Operation cancelled.");
+            return;
+        }
+
+        boolean success = database.updateAlterationStatus(trackingNumber, "Completed");
+
+        if (success) {
+            System.out.println("\nAlteration " + trackingNumber + " marked as completed.");
+            System.out.println("Customer " + request.getCustomerName() + " can pick up their item.");
+        } else {
+            System.out.println("\nError: Failed to update alteration status.");
+        }
+    }
+}
+>>>>>>> 577ef74d85494bff18cb220168cc9a6f4db0a82a

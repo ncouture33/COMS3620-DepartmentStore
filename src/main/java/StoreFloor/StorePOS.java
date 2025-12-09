@@ -74,8 +74,7 @@ public class StorePOS extends AbstractPOSSystem {
     public GiftCard createGiftCard(String cardNumber, double amount) {
         GiftCard giftCard = new GiftCard(cardNumber);
         giftCard.loadAmount(amount);
-        // Do not persist yet, save after payment completes
-        this.pendingGiftCards.add(giftCard);
+        GiftCardDatabase.saveGiftCard(giftCard);
         return giftCard;
     }
 

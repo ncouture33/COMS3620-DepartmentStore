@@ -85,6 +85,7 @@ public class Util {
                 // need to check they're logged in
                 ArrayList<ClockTime> clockedInEmployees = database.getClockedEmployees();
                 // find if employee exists
+
                 for (int i = 0; i < clockedInEmployees.size(); i++) {
                     System.out.println(clockedInEmployees.get(i).getSocial());
                     if (clockedInEmployees.get(i).getSocial() == social) {
@@ -133,34 +134,12 @@ public class Util {
             System.out.println("No active logged-in register to log out from.");
             return;
         }
-        HR.BaseEmployee employee = pos.getLoggedInEmployee();
-        System.out.print("Enter PIN to confirm logout: ");
-        String pin = scanner.nextLine().trim();
-        if (!employee.verifyPin(pin)) {
-            System.out.println("Invalid PIN. Logout aborted.");
-            return;
-        }
-
-        String name = employee.getFName() + " " + employee.getLName();
+        String name = pos.getLoggedInEmployee().getFName() + " " + pos.getLoggedInEmployee().getLName();
         pos.logoutEmployee();
         // clear the session
         Session.setCurrentPOS(null);
         System.out.println("Logged out employee from active register: " + name);
     }
-
-    // private static void logoutOfRegister(Scanner scanner) {
-    // StorePOS pos = Session.getCurrentPOS();
-    // if (pos == null || pos.getLoggedInEmployee() == null) {
-    // System.out.println("No active logged-in register to log out from.");
-    // return;
-    // }
-    // String name = pos.getLoggedInEmployee().getFName() + " " +
-    // pos.getLoggedInEmployee().getLName();
-    // pos.logoutEmployee();
-    // // clear the session
-    // Session.setCurrentPOS(null);
-    // System.out.println("Logged out employee from active register: " + name);
-    // }
 
     private static void registerNewCashier(Scanner scanner) {
         try {

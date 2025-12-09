@@ -1,8 +1,9 @@
 package HR;
 
-import Utils.Data;
 import java.io.File;
 import java.util.Scanner;
+
+import Utils.Data;
 
 public abstract class BaseEmployee implements EmployeeActions, Data {
     protected int id;
@@ -12,13 +13,16 @@ public abstract class BaseEmployee implements EmployeeActions, Data {
     protected int social;
     protected Account directDepositAccount;
     protected TimeCard card;
+    protected String department;
+    protected String role;
     
+
     private String username;    
     private String passwordHashBase64;
     private String passwordSaltBase64;
     private String pin;
 
-    public BaseEmployee(int id, String fName, String lName, int DOB, int social) {
+    public BaseEmployee(int id, String fName, String lName, int DOB, int social, String department, String role) {
         this.card = new TimeCard();
         this.id = id;
         this.fName = fName;
@@ -26,6 +30,8 @@ public abstract class BaseEmployee implements EmployeeActions, Data {
         this.DOB = DOB;
         this.social = social;
         this.card = new TimeCard();
+        this.department = department;
+        this.role = role;
     }
 
     public int getID(){
@@ -90,11 +96,25 @@ public abstract class BaseEmployee implements EmployeeActions, Data {
         this.card = card;
     }
 
-
     public TimeCard getTimecard() {
         return card;
     }
 
+    public void setDepartment(String department){
+        this.department = department;
+    }
+
+    public String getDepartment(){
+        return department;
+    }
+
+    public void setRole(String role){
+        this.role = role;
+    }
+
+    public String getRole(){
+        return role;
+    }
 
     public static synchronized int getNextEmployeeID(){
         
@@ -290,5 +310,12 @@ public abstract class BaseEmployee implements EmployeeActions, Data {
 
     public void setPin(String pin){ this.pin = pin; }
     public boolean verifyPin(String pin){ if(this.pin == null) return false; return this.pin.equals(pin); }
-
+    @Override
+    public void updateRole(String newRole){
+        this.role = newRole;
+    }
+    @Override
+    public  void updateDepartment(String newDepartment){
+        this.department = newDepartment;
+    }
 }
