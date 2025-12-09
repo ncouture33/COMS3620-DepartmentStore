@@ -25,6 +25,7 @@ public class Main {
             System.out.print("1: HR related actions\n");
             System.out.print("2: Store Floor actions\n");
             System.out.print("3: Store Operation Actions\n");
+            System.out.print("4: Security related actions\n");
             System.out.print("5: Inventory actions\n");
 
             String command = scanner.nextLine();
@@ -35,6 +36,8 @@ public class Main {
                 StoreFloor.Util.runSales(scanner);
             } else if (command.equals("3")) {
                 StoreOperations.Util.runOperations(scanner);
+            } else if (command.equals("4")) {
+                Security.Util.runSecurity(scanner);
             } else if (command.equals("5")) {
                 inventory.Util.runInventory(scanner);
             }

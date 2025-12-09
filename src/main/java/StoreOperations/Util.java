@@ -127,38 +127,39 @@ public class Util {
         }
     }
 
-	private static void logoutOfRegister(Scanner scanner){
-		StorePOS pos = Session.getCurrentPOS();
-		if(pos == null || pos.getLoggedInEmployee() == null){
-			System.out.println("No active logged-in register to log out from.");
-			return;
-		}
-		HR.BaseEmployee employee = pos.getLoggedInEmployee();
-		System.out.print("Enter PIN to confirm logout: ");
-		String pin = scanner.nextLine().trim();
-		if (!employee.verifyPin(pin)) {
-			System.out.println("Invalid PIN. Logout aborted.");
-			return;
-		}
+    private static void logoutOfRegister(Scanner scanner) {
+        StorePOS pos = Session.getCurrentPOS();
+        if (pos == null || pos.getLoggedInEmployee() == null) {
+            System.out.println("No active logged-in register to log out from.");
+            return;
+        }
+        HR.BaseEmployee employee = pos.getLoggedInEmployee();
+        System.out.print("Enter PIN to confirm logout: ");
+        String pin = scanner.nextLine().trim();
+        if (!employee.verifyPin(pin)) {
+            System.out.println("Invalid PIN. Logout aborted.");
+            return;
+        }
 
-		String name = employee.getFName() + " " + employee.getLName();
-		pos.logoutEmployee();
-		// clear the session
-		Session.setCurrentPOS(null);
-		System.out.println("Logged out employee from active register: " + name);
-	}
+        String name = employee.getFName() + " " + employee.getLName();
+        pos.logoutEmployee();
+        // clear the session
+        Session.setCurrentPOS(null);
+        System.out.println("Logged out employee from active register: " + name);
+    }
 
     // private static void logoutOfRegister(Scanner scanner) {
-    //     StorePOS pos = Session.getCurrentPOS();
-    //     if (pos == null || pos.getLoggedInEmployee() == null) {
-    //         System.out.println("No active logged-in register to log out from.");
-    //         return;
-    //     }
-    //     String name = pos.getLoggedInEmployee().getFName() + " " + pos.getLoggedInEmployee().getLName();
-    //     pos.logoutEmployee();
-    //     // clear the session
-    //     Session.setCurrentPOS(null);
-    //     System.out.println("Logged out employee from active register: " + name);
+    // StorePOS pos = Session.getCurrentPOS();
+    // if (pos == null || pos.getLoggedInEmployee() == null) {
+    // System.out.println("No active logged-in register to log out from.");
+    // return;
+    // }
+    // String name = pos.getLoggedInEmployee().getFName() + " " +
+    // pos.getLoggedInEmployee().getLName();
+    // pos.logoutEmployee();
+    // // clear the session
+    // Session.setCurrentPOS(null);
+    // System.out.println("Logged out employee from active register: " + name);
     // }
 
     private static void registerNewCashier(Scanner scanner) {
