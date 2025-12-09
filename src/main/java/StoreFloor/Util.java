@@ -7,6 +7,29 @@ import Utils.DatabaseWriter;
 
 public class Util {
     public static void runSales(Scanner scanner) {
+        while (true) {
+            System.out.println("\n--- Store Floor Operations ---");
+            System.out.println("1: Point of Sale (POS)");
+            System.out.println("2: Personal Shopping Appointments");
+            System.out.println("3: Back");
+            System.out.print("Choice: ");
+
+            String choice = scanner.nextLine().trim();
+
+            if (choice.equals("1")) {
+                runPointOfSale(scanner);
+            } else if (choice.equals("2")) {
+                AppointmentUI appointmentUI = new AppointmentUI(scanner);
+                appointmentUI.showAppointmentMenu();
+            } else if (choice.equals("3") || choice.equalsIgnoreCase("back")) {
+                break;
+            } else {
+                System.out.println("Invalid choice. Please try again.");
+            }
+        }
+    }
+
+    private static void runPointOfSale(Scanner scanner) {
         System.out.println("\n--- Point of Sale ---");
         DatabaseWriter database = new Database();
 
