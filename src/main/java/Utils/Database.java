@@ -17,8 +17,6 @@ import HR.Account;
 import HR.BaseEmployee;
 import HR.Hourly;
 import HR.OffboardingEmployee;
-import HR.Orientation.BasicOrientationTask;
-import HR.Orientation.OrientationTask;
 import HR.Payroll;
 import HR.Paystub;
 import HR.Salary;
@@ -26,7 +24,6 @@ import HR.Schedule;
 import HR.Shift;
 import HR.TimeCard;
 import HR.Timeoff;
-import StoreFloor.AlterationRequest;
 import StoreFloor.Customer;
 import StoreFloor.Rewards;
 import StoreOperations.ClockTime;
@@ -111,7 +108,7 @@ public class Database implements DatabaseWriter {
                 if (emp.getID() == empId) {
                     try (FileWriter fwEmployee = new FileWriter("employeesInOffboardingProcess.txt", true)) {
                         OffboardingEmployee offemp = new OffboardingEmployee(empId, emp.getFName(), emp.getLName(),
-                                emp.getDOB(), emp.getSocial(), date, reasonForLeaving);
+                                emp.getDOB(), emp.getSocial(), emp.getDepartment(),emp.getRole(), date, reasonForLeaving);
                         fwEmployee.write(offemp.getData() + "\n");
                         System.out.println("Successfully appended to the offboarding file.");
                     } catch (IOException e) {
@@ -147,90 +144,6 @@ public class Database implements DatabaseWriter {
             System.out.println("An error occurred.");
             e.printStackTrace();
         }
-    }
-
-    @Override
-    public void addOrientationTask(int empId, String taskName, String taskDescription) {
-        File f = new File("orientation_tasks.txt");
-        String safeName = taskName == null ? "" : taskName.replaceAll("\\s+", "_");
-        String safeDesc = taskDescription == null ? "" : taskDescription.replaceAll("\\|", " ");
-        try (FileWriter fw = new FileWriter(f, true)) {
-            fw.write(empId + " " + "0" + " " + safeName + " " + safeDesc + "\n");
-        } catch (IOException e) {
-            System.out.println("Failed to append orientation task.");
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public ArrayList<OrientationTask> getOrientationTasks(int empId) {
-        ArrayList<OrientationTask> tasks = new ArrayList<>();
-        File f = new File("orientation_tasks.txt");
-        if (!f.exists()) return tasks;
-        try (Scanner reader = new Scanner(f)) {
-            while (reader.hasNextLine()) {
-                String line = reader.nextLine().trim();
-                if (line.isEmpty()) continue;
-                String[] parts = line.split(" ", 4);
-                if (parts.length < 3) continue;
-                int id;
-                try { id = Integer.parseInt(parts[0]); } catch (Exception e) { continue; }
-                if (id != empId) continue;
-                String completed = parts[1];
-                String name = parts.length >= 3 ? parts[2] : "";
-                String desc = parts.length == 4 ? parts[3] : "";
-                String prettyName = name.replaceAll("_", " ");
-                BasicOrientationTask t = new BasicOrientationTask(prettyName, desc);
-                if ("1".equals(completed)) t.markCompleted();
-                tasks.add(t);
-            }
-        } catch (Exception e) {
-            System.out.println("Failed to read orientation tasks.");
-            e.printStackTrace();
-        }
-        return tasks;
-    }
-
-    @Override
-    public boolean completeOrientationTask(int empId, String taskName) {
-        File inputFile = new File("orientation_tasks.txt");
-        if (!inputFile.exists()) return false;
-        File tempFile = new File("temp_orientation_tasks.txt");
-        boolean changed = false;
-        String normalizedTarget = taskName == null ? "" : taskName.replaceAll("\\s+", "_");
-        try (Scanner reader = new Scanner(inputFile); FileWriter fw = new FileWriter(tempFile, false)) {
-            while (reader.hasNextLine()) {
-                String line = reader.nextLine();
-                String trimmed = line.trim();
-                if (trimmed.isEmpty()) continue;
-                String[] parts = trimmed.split(" ", 4);
-                if (parts.length < 3) { fw.write(line + "\n"); continue; }
-                int id;
-                try { id = Integer.parseInt(parts[0]); } catch (Exception e) { fw.write(line + "\n"); continue; }
-                String completed = parts[1];
-                String name = parts.length >= 3 ? parts[2] : "";
-                String desc = parts.length == 4 ? parts[3] : "";
-                if (id == empId && name.equalsIgnoreCase(normalizedTarget) && !"1".equals(completed)) {
-                    fw.write(id + " " + "1" + " " + name + " " + desc + "\n");
-                    changed = true;
-                } else {
-                    fw.write(line + "\n");
-                }
-            }
-        } catch (IOException e) {
-            System.out.println("Failed to update orientation tasks.");
-            e.printStackTrace();
-            return false;
-        }
-        if (!inputFile.delete()) {
-            System.out.println("Could not delete original orientation tasks file.");
-            return false;
-        }
-        if (!tempFile.renameTo(inputFile)) {
-            System.out.println("Could not rename temp orientation tasks file.");
-            return false;
-        }
-        return changed;
     }
 
     @Override
@@ -424,44 +337,67 @@ public class Database implements DatabaseWriter {
     }
 
     private BaseEmployee parseEmployee(String data) {
-        // Parsing logic here
-        BaseEmployee emp = null;
-        TimeCard card = null;
-        Scanner tempScanner = new Scanner(data);
-        String empType = tempScanner.next();
+    Scanner scanner = new Scanner(data);
+    if (!scanner.hasNext()) return null;
 
-        int id = tempScanner.nextInt();
-        String fName = tempScanner.next();
-        String lName = tempScanner.next();
-        int DOB = tempScanner.nextInt();
-        int social = tempScanner.nextInt();
-        int timePeriod = tempScanner.nextInt();
-        double hoursWorked = tempScanner.nextDouble();
-        double overtimeHours = tempScanner.nextDouble();
-        String bankName = tempScanner.next();
-        int routingNum = tempScanner.nextInt();
-        int accountNum = tempScanner.nextInt();
-        Account account = new Account(bankName, routingNum, accountNum);
-        if (empType.equals("SALARY")) {
-            int salary = tempScanner.nextInt();
-            emp = new Salary(id, fName, lName, DOB, social, salary);
-            emp.setAccount(account);
-            card = new TimeCard(timePeriod, hoursWorked, overtimeHours);
-            emp.setTimeCard(card);
-            tempScanner.close();
-            return emp;
-        } else if (empType.equals("HOURLY")) {
-            double hourlyRate = tempScanner.nextDouble();
-            double overtimeRate = tempScanner.nextDouble();
-            emp = new Hourly(id, fName, lName, DOB, social, hourlyRate, overtimeRate);
-            emp.setAccount(account);
-            card = new TimeCard(timePeriod, hoursWorked, overtimeHours);
-            emp.setTimeCard(card);
-            tempScanner.close();
-            return emp;
-        }
-        return null;
+    String empType = scanner.next();
+
+    int id = scanner.hasNextInt() ? scanner.nextInt() : 0;
+    String fName = scanner.hasNext() ? scanner.next() : "";
+    String lName = scanner.hasNext() ? scanner.next() : "";
+    int DOB = scanner.hasNextInt() ? scanner.nextInt() : 0;
+    int social = scanner.hasNextInt() ? scanner.nextInt() : 0;
+    int timePeriod = scanner.hasNextInt() ? scanner.nextInt() : 0;
+    double hoursWorked = scanner.hasNextDouble() ? scanner.nextDouble() : 0.0;
+    double overtimeHours = scanner.hasNextDouble() ? scanner.nextDouble() : 0.0;
+
+    String bankName = scanner.hasNext() ? scanner.next() : "";
+    int routingNum = scanner.hasNextInt() ? scanner.nextInt() : 0;
+    int accountNum = scanner.hasNextInt() ? scanner.nextInt() : 0;
+    Account account = new Account(bankName, routingNum, accountNum);
+
+    double hourlyRate = 0.0, overtimeRate = 0.0;
+    int salaryAmount = 0;
+
+    if (empType.equals("SALARY") && scanner.hasNextInt()) {
+        salaryAmount = scanner.nextInt();
+    } else if (empType.equals("HOURLY")) {
+        if (scanner.hasNextDouble()) hourlyRate = scanner.nextDouble();
+        if (scanner.hasNextDouble()) overtimeRate = scanner.nextDouble();
     }
+
+    // Everything else is department and role (possibly multi-word)
+    String dep = "";
+    String role = "";
+    if (scanner.hasNextLine()) {
+        String remaining = scanner.nextLine().trim();
+        if (!remaining.isEmpty()) {
+            String[] parts = remaining.split("\\s+");
+            if (parts.length >= 2) {
+                role = parts[parts.length - 1]; // last word
+                dep = String.join(" ", java.util.Arrays.copyOf(parts, parts.length - 1));
+            } else if (parts.length == 1) {
+                dep = parts[0]; // or role depending on your convention
+            }
+        }
+    }
+
+    BaseEmployee emp = null;
+    if (empType.equals("SALARY")) {
+        emp = new Salary(id, fName, lName, DOB, social, salaryAmount, dep, role);
+    } else if (empType.equals("HOURLY")) {
+        emp = new Hourly(id, fName, lName, DOB, social, hourlyRate, overtimeRate, dep, role);
+    }
+
+    if (emp != null) {
+        emp.setAccount(account);
+        emp.setTimeCard(new TimeCard(timePeriod, hoursWorked, overtimeHours));
+    }
+
+    scanner.close();
+    return emp;
+}
+
 
     private OffboardingEmployee parseOffBoardEmployee(String data) {
         // Parsing logic here
@@ -471,13 +407,15 @@ public class Database implements DatabaseWriter {
         String lName = tempScanner.next();
         int DOB = tempScanner.nextInt();
         int social = tempScanner.nextInt();
+        String dep = tempScanner.nextLine();
+        String role = tempScanner.nextLine();
         String date = tempScanner.next();
         String reasonForLeaving = "";
         if (tempScanner.hasNextLine()) {
             reasonForLeaving = tempScanner.nextLine().trim();
         }
 
-        OffboardingEmployee emp = new OffboardingEmployee(id, fName, lName, DOB, social, date, reasonForLeaving);
+        OffboardingEmployee emp = new OffboardingEmployee(id, fName, lName, DOB, social, dep, role, date, reasonForLeaving);
         tempScanner.close();
         return emp;
     }
@@ -830,79 +768,106 @@ public class Database implements DatabaseWriter {
     }
 
     @Override
-    public void writeAlterationRequest(AlterationRequest request) {
-        try (FileWriter fwAlteration = new FileWriter("alterations.txt", true)) {
-            fwAlteration.write(request.getData() + "\n");
-            System.out.println("Successfully appended to the alterations file.");
-        } catch (IOException e) {
-            System.out.println("An error occurred.");
-            e.printStackTrace();
+public void updateEmployee(BaseEmployee updatedEmp) {
+    File inputFile = new File("employees.txt");
+    File tempFile = new File("temp.txt");
+
+    try (
+        Scanner myReader = new Scanner(inputFile);
+        PrintWriter writer = new PrintWriter(tempFile);
+    ) {
+        while (myReader.hasNextLine()) {
+            String data = myReader.nextLine().trim();
+            if (data.isEmpty()) continue;
+
+            BaseEmployee emp;
+            try {
+                emp = parseEmployee(data);
+            } catch (Exception e) {
+                System.out.println("Skipping malformed line: " + data);
+                writer.println(data); // keep original line
+                continue;
+            }
+
+            if (emp.getID() == updatedEmp.getID()) {
+                // write updated employee instead
+                writer.println(updatedEmp.getData());
+            } else {
+                // keep other employees as is
+                writer.println(data);
+            }
         }
+    } catch (Exception e) {
+        System.out.println("An error occurred while updating employee.");
+        e.printStackTrace();
+        return;
     }
 
+    // Replace original file with temp
+    if (!inputFile.delete()) {
+        System.out.println("Could not delete original file.");
+        return;
+    }
+    if (!tempFile.renameTo(inputFile)) {
+        System.out.println("Could not rename temp file.");
+    }
+
+    // Also update credentials if needed
+    writeRegisterCredentials(updatedEmp);
+}
+
+
     @Override
-    public String generateAlterationTrackingNumber() {
-        int maxNum = 0;
-        try {
-            ArrayList<AlterationRequest> requests = getAlterationRequests();
-            for (AlterationRequest r : requests) {
-                try {
-                    String trackingNum = r.getTrackingNumber();
-                    if (trackingNum.startsWith("ALT-")) {
-                        int num = Integer.parseInt(trackingNum.substring(4));
-                        if (num > maxNum) {
-                            maxNum = num;
+    public BaseEmployee getEmployeeByID(int empID) {
+    try (Scanner myReader = new Scanner(new File("employees.txt"))) {
+        while (myReader.hasNextLine()) {
+            String data = myReader.nextLine().trim();
+            if (data.isEmpty()) continue;
+
+            BaseEmployee emp;
+            try {
+                emp = parseEmployee(data);
+            } catch (Exception e) {
+                System.out.println("Skipping malformed line: " + data);
+                e.printStackTrace();
+                continue;
+            }
+
+            if (emp.getID() == empID) {
+                // Load credentials for this employee if present
+                try (Scanner credReader = new Scanner(new File("registerEmployees.txt"))) {
+                    while (credReader.hasNextLine()) {
+                        String line = credReader.nextLine().trim();
+                        if (line.isEmpty()) continue;
+
+                        try (Scanner s = new Scanner(line)) {
+                            int id = s.nextInt();
+                            String username = s.hasNext() ? s.next() : "";
+                            String salt = s.hasNext() ? s.next() : "";
+                            String hash = s.hasNext() ? s.next() : "";
+                            String pin = s.hasNext() ? s.next() : "";
+
+                            if (id == empID) {
+                                if (!username.isEmpty()) emp.setUsername(username);
+                                if (!salt.isEmpty() && !hash.isEmpty()) emp.setStoredPassword(salt, hash);
+                                if (!pin.isEmpty()) emp.setPin(pin);
+                                break;
+                            }
+                        } catch (Exception ex) {
+                            // skip malformed lines
                         }
                     }
-                } catch (NumberFormatException e) {
+                } catch (Exception e) {
+                    // ignore if file doesn't exist
                 }
+                return emp;
             }
-        } catch (Exception e) {
-            System.out.println("An error occurred.");
-            e.printStackTrace();
         }
-        return "ALT-" + (maxNum + 1);
+    } catch (Exception e) {
+        System.out.println("Error reading employees.txt");
+        e.printStackTrace();
     }
-
-    @Override
-    public ArrayList<AlterationRequest> getAlterationRequests() {
-        ArrayList<AlterationRequest> requests = new ArrayList<>();
-        File file = new File("alterations.txt");
-        if (!file.exists()) {
-            return requests;
-        }
-        try (Scanner myReader = new Scanner(file)) {
-            while (myReader.hasNextLine()) {
-                String data = myReader.nextLine().trim();
-                if (data.isEmpty()) {
-                    continue;
-                }
-                String[] parts = data.split("\\|", -1);
-                if (parts.length != 10) {
-                    System.out.println("Invalid alteration record: " + data);
-                    continue;
-                }
-                String trackingNumber = parts[0];
-                String customerName = parts[1];
-                String customerPhone = parts[2];
-                String itemSKU = parts[3];
-                String purchaseDate = parts[4];
-                String alterationInstructions = parts[5];
-                String measurements = parts[6];
-                double cost = Double.parseDouble(parts[7]);
-                String completionDate = parts[8];
-                String status = parts[9];
-                AlterationRequest request = new AlterationRequest(trackingNumber, customerName, customerPhone,
-                        itemSKU, purchaseDate, alterationInstructions,
-                        measurements, cost, completionDate, status);
-                requests.add(request);
-            }
-        } catch (Exception e) {
-            System.out.println("An error occurred.");
-            e.printStackTrace();
-        }
-        return requests;
-    }
+<<<<<<< HEAD
 
     @Override
     public AlterationRequest getAlterationByTrackingNumber(String trackingNumber) {
@@ -966,4 +931,10 @@ public class Database implements DatabaseWriter {
 
         return true;
     }
+=======
+    return null; // not found
+}
+
+
+>>>>>>> master
 }

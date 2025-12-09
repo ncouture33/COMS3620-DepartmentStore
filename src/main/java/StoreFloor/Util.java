@@ -1,16 +1,13 @@
 package StoreFloor;
 
-import java.nio.file.Paths;
-import java.util.Map;
 import java.util.Scanner;
 
 import Utils.Database;
 import Utils.DatabaseWriter;
-import inventory.io.InventoryFileStore;
-import inventory.model.Product;
 
 public class Util {
     public static void runSales(Scanner scanner) {
+<<<<<<< HEAD
         while (true) {
             System.out.println("\nStore Floor - choose an option:");
             System.out.println("1: Point of Sale");
@@ -33,6 +30,8 @@ public class Util {
     }
 
     public static void runPOS(Scanner scanner) {
+=======
+>>>>>>> master
         System.out.println("\n--- Point of Sale ---");
         DatabaseWriter database = new Database();
 
@@ -48,7 +47,7 @@ public class Util {
 
         System.out.print("Is the customer a rewards member? (yes/no): ");
         boolean member = scanner.nextLine().equalsIgnoreCase("yes");
-        Customer customer = new Customer(name, member);
+        Customer customer = null;
 
         if (member){
             System.out.print("Enter phone number: ");
@@ -59,6 +58,7 @@ public class Util {
                 System.out.println("No rewards account found for phone number " + phoneNumber);
             }
             else{
+                customer = new Customer(name, true);
                 customer.setRewards(rewards);
                 System.out.println("Rewards ID " + rewards.getId() + " linked to customer " + name + " with phone number " + phoneNumber);
             }  
@@ -86,10 +86,6 @@ public class Util {
 
         pos.startTransaction();
 
-        // allocate a per-transaction sequence for gift card IDs so multiple cards
-        // in a single transaction get unique IDs even before persisting to disk
-        int nextGiftCardId = GiftCardDatabase.getNextGiftCardID();
-
         while (true) {
             System.out.print("Enter item name (or 'done' to finish, or 'giftcard' to buy a gift card): ");
             String itemName = scanner.nextLine();
@@ -99,7 +95,8 @@ public class Util {
             double price = 0;
         
             if (itemName.equalsIgnoreCase("giftcard")) {
-                String cardNumber = String.valueOf(nextGiftCardId++);
+                System.out.print("Enter gift card number: ");
+                String cardNumber = scanner.nextLine();
                 System.out.print("Enter gift card amount: ");
                 price = Double.parseDouble(scanner.nextLine());
                 GiftCard giftCard = pos.createGiftCard(cardNumber, price);
@@ -119,16 +116,33 @@ public class Util {
         
         pos.applyAwards(customer);
 
-        double paidSoFar = processPayment(scanner, pos.total);
-        if (paidSoFar < 0) {
-            System.out.println("Payment cancelled. Transaction aborted.");
-            return;
-        }
+        System.out.print("Pay with (cash/card/giftcard): ");
+        String method = scanner.nextLine();
 
-        pos.finalizeSale(paidSoFar, customer);
+        if (method.equalsIgnoreCase("cash")) {
+            System.out.print("Enter cash amount: ");
+            double cash = Double.parseDouble(scanner.nextLine());
+            PaymentMethod payment = new CashPayment(cash);
+            pos.finalizeSale(payment, customer);
+        } else if(method.equalsIgnoreCase("card")) {
+            PaymentMethod payment = new CardPayment();
+            pos.finalizeSale(payment, customer);
+        }else {
+            System.out.println("Enter Giftcard Number: ");
+            String card = scanner.nextLine();
+            for(Item i : pos.currentSale){
+                if(i.getName().equalsIgnoreCase("giftcard")){
+                System.out.println("Can not buy a gift card with a giftcard");
+                break;
+                }
+            }
+            PaymentMethod payment = new GiftCardPayment(card);
+            pos.finalizeSale(payment, customer);
+        }
 
         System.out.println("Transaction complete.\n");
     }
+<<<<<<< HEAD
 
     public static double processPayment(Scanner scanner, double totalAmount) {
         double paidSoFar = 0.0;
@@ -319,4 +333,6 @@ public class Util {
             System.out.println("\nError: Failed to update alteration status.");
         }
     }
+=======
+>>>>>>> master
 }
