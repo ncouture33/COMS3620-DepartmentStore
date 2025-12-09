@@ -111,7 +111,7 @@ public class Database implements DatabaseWriter {
                 if (emp.getID() == empId) {
                     try (FileWriter fwEmployee = new FileWriter("employeesInOffboardingProcess.txt", true)) {
                         OffboardingEmployee offemp = new OffboardingEmployee(empId, emp.getFName(), emp.getLName(),
-                                emp.getDOB(), emp.getSocial(), date, reasonForLeaving);
+                                emp.getDOB(), emp.getSocial(), emp.getDepartment(),emp.getRole(), date, reasonForLeaving);
                         fwEmployee.write(offemp.getData() + "\n");
                         System.out.println("Successfully appended to the offboarding file.");
                     } catch (IOException e) {
@@ -424,44 +424,67 @@ public class Database implements DatabaseWriter {
     }
 
     private BaseEmployee parseEmployee(String data) {
-        // Parsing logic here
-        BaseEmployee emp = null;
-        TimeCard card = null;
-        Scanner tempScanner = new Scanner(data);
-        String empType = tempScanner.next();
+    Scanner scanner = new Scanner(data);
+    if (!scanner.hasNext()) return null;
 
-        int id = tempScanner.nextInt();
-        String fName = tempScanner.next();
-        String lName = tempScanner.next();
-        int DOB = tempScanner.nextInt();
-        int social = tempScanner.nextInt();
-        int timePeriod = tempScanner.nextInt();
-        double hoursWorked = tempScanner.nextDouble();
-        double overtimeHours = tempScanner.nextDouble();
-        String bankName = tempScanner.next();
-        int routingNum = tempScanner.nextInt();
-        int accountNum = tempScanner.nextInt();
-        Account account = new Account(bankName, routingNum, accountNum);
-        if (empType.equals("SALARY")) {
-            int salary = tempScanner.nextInt();
-            emp = new Salary(id, fName, lName, DOB, social, salary);
-            emp.setAccount(account);
-            card = new TimeCard(timePeriod, hoursWorked, overtimeHours);
-            emp.setTimeCard(card);
-            tempScanner.close();
-            return emp;
-        } else if (empType.equals("HOURLY")) {
-            double hourlyRate = tempScanner.nextDouble();
-            double overtimeRate = tempScanner.nextDouble();
-            emp = new Hourly(id, fName, lName, DOB, social, hourlyRate, overtimeRate);
-            emp.setAccount(account);
-            card = new TimeCard(timePeriod, hoursWorked, overtimeHours);
-            emp.setTimeCard(card);
-            tempScanner.close();
-            return emp;
-        }
-        return null;
+    String empType = scanner.next();
+
+    int id = scanner.hasNextInt() ? scanner.nextInt() : 0;
+    String fName = scanner.hasNext() ? scanner.next() : "";
+    String lName = scanner.hasNext() ? scanner.next() : "";
+    int DOB = scanner.hasNextInt() ? scanner.nextInt() : 0;
+    int social = scanner.hasNextInt() ? scanner.nextInt() : 0;
+    int timePeriod = scanner.hasNextInt() ? scanner.nextInt() : 0;
+    double hoursWorked = scanner.hasNextDouble() ? scanner.nextDouble() : 0.0;
+    double overtimeHours = scanner.hasNextDouble() ? scanner.nextDouble() : 0.0;
+
+    String bankName = scanner.hasNext() ? scanner.next() : "";
+    int routingNum = scanner.hasNextInt() ? scanner.nextInt() : 0;
+    int accountNum = scanner.hasNextInt() ? scanner.nextInt() : 0;
+    Account account = new Account(bankName, routingNum, accountNum);
+
+    double hourlyRate = 0.0, overtimeRate = 0.0;
+    int salaryAmount = 0;
+
+    if (empType.equals("SALARY") && scanner.hasNextInt()) {
+        salaryAmount = scanner.nextInt();
+    } else if (empType.equals("HOURLY")) {
+        if (scanner.hasNextDouble()) hourlyRate = scanner.nextDouble();
+        if (scanner.hasNextDouble()) overtimeRate = scanner.nextDouble();
     }
+
+    // Everything else is department and role (possibly multi-word)
+    String dep = "";
+    String role = "";
+    if (scanner.hasNextLine()) {
+        String remaining = scanner.nextLine().trim();
+        if (!remaining.isEmpty()) {
+            String[] parts = remaining.split("\\s+");
+            if (parts.length >= 2) {
+                role = parts[parts.length - 1]; // last word
+                dep = String.join(" ", java.util.Arrays.copyOf(parts, parts.length - 1));
+            } else if (parts.length == 1) {
+                dep = parts[0]; // or role depending on your convention
+            }
+        }
+    }
+
+    BaseEmployee emp = null;
+    if (empType.equals("SALARY")) {
+        emp = new Salary(id, fName, lName, DOB, social, salaryAmount, dep, role);
+    } else if (empType.equals("HOURLY")) {
+        emp = new Hourly(id, fName, lName, DOB, social, hourlyRate, overtimeRate, dep, role);
+    }
+
+    if (emp != null) {
+        emp.setAccount(account);
+        emp.setTimeCard(new TimeCard(timePeriod, hoursWorked, overtimeHours));
+    }
+
+    scanner.close();
+    return emp;
+}
+
 
     private OffboardingEmployee parseOffBoardEmployee(String data) {
         // Parsing logic here
@@ -471,13 +494,15 @@ public class Database implements DatabaseWriter {
         String lName = tempScanner.next();
         int DOB = tempScanner.nextInt();
         int social = tempScanner.nextInt();
+        String dep = tempScanner.nextLine();
+        String role = tempScanner.nextLine();
         String date = tempScanner.next();
         String reasonForLeaving = "";
         if (tempScanner.hasNextLine()) {
             reasonForLeaving = tempScanner.nextLine().trim();
         }
 
-        OffboardingEmployee emp = new OffboardingEmployee(id, fName, lName, DOB, social, date, reasonForLeaving);
+        OffboardingEmployee emp = new OffboardingEmployee(id, fName, lName, DOB, social, dep, role, date, reasonForLeaving);
         tempScanner.close();
         return emp;
     }
@@ -827,80 +852,5 @@ public class Database implements DatabaseWriter {
             System.out.println("An error occurred.");
             e.printStackTrace();
         }
-    }
-
-    @Override
-    public void writeAlterationRequest(AlterationRequest request) {
-        try (FileWriter fwAlteration = new FileWriter("alterations.txt", true)) {
-            fwAlteration.write(request.getData() + "\n");
-            System.out.println("Successfully appended to the alterations file.");
-        } catch (IOException e) {
-            System.out.println("An error occurred.");
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public String generateAlterationTrackingNumber() {
-        int maxNum = 0;
-        try {
-            ArrayList<AlterationRequest> requests = getAlterationRequests();
-            for (AlterationRequest r : requests) {
-                try {
-                    String trackingNum = r.getTrackingNumber();
-                    if (trackingNum.startsWith("ALT-")) {
-                        int num = Integer.parseInt(trackingNum.substring(4));
-                        if (num > maxNum) {
-                            maxNum = num;
-                        }
-                    }
-                } catch (NumberFormatException e) {
-                }
-            }
-        } catch (Exception e) {
-            System.out.println("An error occurred.");
-            e.printStackTrace();
-        }
-        return "ALT-" + (maxNum + 1);
-    }
-
-    @Override
-    public ArrayList<AlterationRequest> getAlterationRequests() {
-        ArrayList<AlterationRequest> requests = new ArrayList<>();
-        File file = new File("alterations.txt");
-        if (!file.exists()) {
-            return requests;
-        }
-        try (Scanner myReader = new Scanner(file)) {
-            while (myReader.hasNextLine()) {
-                String data = myReader.nextLine().trim();
-                if (data.isEmpty()) {
-                    continue;
-                }
-                String[] parts = data.split("\\|", -1);
-                if (parts.length != 10) {
-                    System.out.println("Invalid alteration record: " + data);
-                    continue;
-                }
-                String trackingNumber = parts[0];
-                String customerName = parts[1];
-                String customerPhone = parts[2];
-                String itemSKU = parts[3];
-                String purchaseDate = parts[4];
-                String alterationInstructions = parts[5];
-                String measurements = parts[6];
-                double cost = Double.parseDouble(parts[7]);
-                String completionDate = parts[8];
-                String status = parts[9];
-                AlterationRequest request = new AlterationRequest(trackingNumber, customerName, customerPhone,
-                        itemSKU, purchaseDate, alterationInstructions,
-                        measurements, cost, completionDate, status);
-                requests.add(request);
-            }
-        } catch (Exception e) {
-            System.out.println("An error occurred.");
-            e.printStackTrace();
-        }
-        return requests;
     }
 }

@@ -24,6 +24,7 @@ public class Util {
                 "4: View Upcoming Payroll\n" +
                 "5: Execute Payroll\n" +
                 "6: Orientation\n" +
+                "7; Promotion/ Demotion\n"+
                 "Type 'exit' to return to main menu.\n"
             );
 
@@ -60,8 +61,12 @@ public class Util {
                 if (empType.equals("S")) {
                     System.out.println("Enter employee salary: ");
                     int salary = Integer.parseInt(scanner.nextLine());
+                    System.out.println("Enter Department: ");
+                    String department = scanner.nextLine();
+                    System.out.println("Enter Role: ");
+                    String role = scanner.nextLine();
 
-                    Salary emp = new Salary(BaseEmployee.getNextEmployeeID(), fName, lName, DOB, social, salary);
+                    Salary emp = new Salary(BaseEmployee.getNextEmployeeID(), fName, lName, DOB, social, salary, department, role);
 
                     emp.setAccount(account);
 
@@ -72,8 +77,12 @@ public class Util {
                     double hourlyRate = Double.parseDouble(scanner.nextLine());
                     System.out.println("Enter employee overtime rate: ");
                     double overtimeRate = Double.parseDouble(scanner.nextLine());
+                    System.out.println("Enter Department: ");
+                    String department = scanner.nextLine();
+                    System.out.println("Enter Role: ");
+                    String role = scanner.nextLine();
 
-                    Hourly emp = new Hourly(BaseEmployee.getNextEmployeeID(), fName, lName, DOB, social, hourlyRate, overtimeRate);
+                    Hourly emp = new Hourly(BaseEmployee.getNextEmployeeID(), fName, lName, DOB, social, hourlyRate, overtimeRate, department, role);
 
                     emp.setAccount(account);
 
