@@ -24,6 +24,7 @@ import HR.Schedule;
 import HR.Shift;
 import HR.TimeCard;
 import HR.Timeoff;
+import StoreFloor.AlterationRequest;
 import StoreFloor.Customer;
 import StoreFloor.Rewards;
 import StoreOperations.ClockTime;
@@ -337,66 +338,66 @@ public class Database implements DatabaseWriter {
     }
 
     private BaseEmployee parseEmployee(String data) {
-    Scanner scanner = new Scanner(data);
-    if (!scanner.hasNext()) return null;
+        Scanner scanner = new Scanner(data);
+        if (!scanner.hasNext()) return null;
 
-    String empType = scanner.next();
+        String empType = scanner.next();
 
-    int id = scanner.hasNextInt() ? scanner.nextInt() : 0;
-    String fName = scanner.hasNext() ? scanner.next() : "";
-    String lName = scanner.hasNext() ? scanner.next() : "";
-    int DOB = scanner.hasNextInt() ? scanner.nextInt() : 0;
-    int social = scanner.hasNextInt() ? scanner.nextInt() : 0;
-    int timePeriod = scanner.hasNextInt() ? scanner.nextInt() : 0;
-    double hoursWorked = scanner.hasNextDouble() ? scanner.nextDouble() : 0.0;
-    double overtimeHours = scanner.hasNextDouble() ? scanner.nextDouble() : 0.0;
+        int id = scanner.hasNextInt() ? scanner.nextInt() : 0;
+        String fName = scanner.hasNext() ? scanner.next() : "";
+        String lName = scanner.hasNext() ? scanner.next() : "";
+        int DOB = scanner.hasNextInt() ? scanner.nextInt() : 0;
+        int social = scanner.hasNextInt() ? scanner.nextInt() : 0;
+        int timePeriod = scanner.hasNextInt() ? scanner.nextInt() : 0;
+        double hoursWorked = scanner.hasNextDouble() ? scanner.nextDouble() : 0.0;
+        double overtimeHours = scanner.hasNextDouble() ? scanner.nextDouble() : 0.0;
 
-    String bankName = scanner.hasNext() ? scanner.next() : "";
-    int routingNum = scanner.hasNextInt() ? scanner.nextInt() : 0;
-    int accountNum = scanner.hasNextInt() ? scanner.nextInt() : 0;
-    Account account = new Account(bankName, routingNum, accountNum);
+        String bankName = scanner.hasNext() ? scanner.next() : "";
+        int routingNum = scanner.hasNextInt() ? scanner.nextInt() : 0;
+        int accountNum = scanner.hasNextInt() ? scanner.nextInt() : 0;
+        Account account = new Account(bankName, routingNum, accountNum);
 
-    double hourlyRate = 0.0, overtimeRate = 0.0;
-    int salaryAmount = 0;
+        double hourlyRate = 0.0, overtimeRate = 0.0;
+        int salaryAmount = 0;
 
-    if (empType.equals("SALARY") && scanner.hasNextInt()) {
-        salaryAmount = scanner.nextInt();
-    } else if (empType.equals("HOURLY")) {
-        if (scanner.hasNextDouble()) hourlyRate = scanner.nextDouble();
-        if (scanner.hasNextDouble()) overtimeRate = scanner.nextDouble();
-    }
+        if (empType.equals("SALARY") && scanner.hasNextInt()) {
+            salaryAmount = scanner.nextInt();
+        } else if (empType.equals("HOURLY")) {
+            if (scanner.hasNextDouble()) hourlyRate = scanner.nextDouble();
+            if (scanner.hasNextDouble()) overtimeRate = scanner.nextDouble();
+        }
 
-    // Everything else is department and role (possibly multi-word)
-    String dep = "";
-    String role = "";
-    if (scanner.hasNextLine()) {
-        String remaining = scanner.nextLine().trim();
-        if (!remaining.isEmpty()) {
-            String[] parts = remaining.split("\\s+");
-            if (parts.length >= 2) {
-                role = parts[parts.length - 1]; // last word
-                dep = String.join(" ", java.util.Arrays.copyOf(parts, parts.length - 1));
-            } else if (parts.length == 1) {
-                dep = parts[0]; // or role depending on your convention
+        // Everything else is department and role (possibly multi-word)
+        String dep = "";
+        String role = "";
+        if (scanner.hasNextLine()) {
+            String remaining = scanner.nextLine().trim();
+            if (!remaining.isEmpty()) {
+                String[] parts = remaining.split("\\s+");
+                if (parts.length >= 2) {
+                    role = parts[parts.length - 1]; // last word
+                    dep = String.join(" ", java.util.Arrays.copyOf(parts, parts.length - 1));
+                } else if (parts.length == 1) {
+                    dep = parts[0]; // or role depending on your convention
+                }
             }
         }
-    }
 
-    BaseEmployee emp = null;
-    if (empType.equals("SALARY")) {
-        emp = new Salary(id, fName, lName, DOB, social, salaryAmount, dep, role);
-    } else if (empType.equals("HOURLY")) {
-        emp = new Hourly(id, fName, lName, DOB, social, hourlyRate, overtimeRate, dep, role);
-    }
+        BaseEmployee emp = null;
+        if (empType.equals("SALARY")) {
+            emp = new Salary(id, fName, lName, DOB, social, salaryAmount, dep, role);
+        } else if (empType.equals("HOURLY")) {
+            emp = new Hourly(id, fName, lName, DOB, social, hourlyRate, overtimeRate, dep, role);
+        }
 
-    if (emp != null) {
-        emp.setAccount(account);
-        emp.setTimeCard(new TimeCard(timePeriod, hoursWorked, overtimeHours));
-    }
+        if (emp != null) {
+            emp.setAccount(account);
+            emp.setTimeCard(new TimeCard(timePeriod, hoursWorked, overtimeHours));
+        }
 
-    scanner.close();
-    return emp;
-}
+        scanner.close();
+        return emp;
+    }
 
 
     private OffboardingEmployee parseOffBoardEmployee(String data) {
@@ -768,106 +769,118 @@ public class Database implements DatabaseWriter {
     }
 
     @Override
-public void updateEmployee(BaseEmployee updatedEmp) {
-    File inputFile = new File("employees.txt");
-    File tempFile = new File("temp.txt");
-
-    try (
-        Scanner myReader = new Scanner(inputFile);
-        PrintWriter writer = new PrintWriter(tempFile);
-    ) {
-        while (myReader.hasNextLine()) {
-            String data = myReader.nextLine().trim();
-            if (data.isEmpty()) continue;
-
-            BaseEmployee emp;
-            try {
-                emp = parseEmployee(data);
-            } catch (Exception e) {
-                System.out.println("Skipping malformed line: " + data);
-                writer.println(data); // keep original line
-                continue;
-            }
-
-            if (emp.getID() == updatedEmp.getID()) {
-                // write updated employee instead
-                writer.println(updatedEmp.getData());
-            } else {
-                // keep other employees as is
-                writer.println(data);
-            }
+    public void writeAlterationRequest(AlterationRequest request) {
+        try (FileWriter fwAlteration = new FileWriter("alterations.txt", true)) {
+            fwAlteration.write(request.getData() + "\n");
+            System.out.println("Successfully appended to the alterations file.");
+        } catch (IOException e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
         }
-    } catch (Exception e) {
-        System.out.println("An error occurred while updating employee.");
-        e.printStackTrace();
-        return;
     }
 
-    // Replace original file with temp
-    if (!inputFile.delete()) {
-        System.out.println("Could not delete original file.");
-        return;
-    }
-    if (!tempFile.renameTo(inputFile)) {
-        System.out.println("Could not rename temp file.");
-    }
+    @Override
+    public void updateEmployee(BaseEmployee updatedEmp) {
+        File inputFile = new File("employees.txt");
+        File tempFile = new File("temp.txt");
 
-    // Also update credentials if needed
-    writeRegisterCredentials(updatedEmp);
-}
+        try (
+            Scanner myReader = new Scanner(inputFile);
+            PrintWriter writer = new PrintWriter(tempFile);
+        ) {
+            while (myReader.hasNextLine()) {
+                String data = myReader.nextLine().trim();
+                if (data.isEmpty()) continue;
+
+                BaseEmployee emp;
+                try {
+                    emp = parseEmployee(data);
+                } catch (Exception e) {
+                    System.out.println("Skipping malformed line: " + data);
+                    writer.println(data); // keep original line
+                    continue;
+                }
+
+                if (emp.getID() == updatedEmp.getID()) {
+                    // write updated employee instead
+                    writer.println(updatedEmp.getData());
+                } else {
+                    // keep other employees as is
+                    writer.println(data);
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("An error occurred while updating employee.");
+            e.printStackTrace();
+            return;
+        }
+
+        // Replace original file with temp
+        if (!inputFile.delete()) {
+            System.out.println("Could not delete original file.");
+            return;
+        }
+        if (!tempFile.renameTo(inputFile)) {
+            System.out.println("Could not rename temp file.");
+        }
+
+        // Also update credentials if needed
+        writeRegisterCredentials(updatedEmp);
+    }
 
 
     @Override
     public BaseEmployee getEmployeeByID(int empID) {
-    try (Scanner myReader = new Scanner(new File("employees.txt"))) {
-        while (myReader.hasNextLine()) {
-            String data = myReader.nextLine().trim();
-            if (data.isEmpty()) continue;
+        try (Scanner myReader = new Scanner(new File("employees.txt"))) {
+            while (myReader.hasNextLine()) {
+                String data = myReader.nextLine().trim();
+                if (data.isEmpty()) continue;
 
-            BaseEmployee emp;
-            try {
-                emp = parseEmployee(data);
-            } catch (Exception e) {
-                System.out.println("Skipping malformed line: " + data);
-                e.printStackTrace();
-                continue;
-            }
-
-            if (emp.getID() == empID) {
-                // Load credentials for this employee if present
-                try (Scanner credReader = new Scanner(new File("registerEmployees.txt"))) {
-                    while (credReader.hasNextLine()) {
-                        String line = credReader.nextLine().trim();
-                        if (line.isEmpty()) continue;
-
-                        try (Scanner s = new Scanner(line)) {
-                            int id = s.nextInt();
-                            String username = s.hasNext() ? s.next() : "";
-                            String salt = s.hasNext() ? s.next() : "";
-                            String hash = s.hasNext() ? s.next() : "";
-                            String pin = s.hasNext() ? s.next() : "";
-
-                            if (id == empID) {
-                                if (!username.isEmpty()) emp.setUsername(username);
-                                if (!salt.isEmpty() && !hash.isEmpty()) emp.setStoredPassword(salt, hash);
-                                if (!pin.isEmpty()) emp.setPin(pin);
-                                break;
-                            }
-                        } catch (Exception ex) {
-                            // skip malformed lines
-                        }
-                    }
+                BaseEmployee emp;
+                try {
+                    emp = parseEmployee(data);
                 } catch (Exception e) {
-                    // ignore if file doesn't exist
+                    System.out.println("Skipping malformed line: " + data);
+                    e.printStackTrace();
+                    continue;
                 }
-                return emp;
+
+                if (emp.getID() == empID) {
+                    // Load credentials for this employee if present
+                    try (Scanner credReader = new Scanner(new File("registerEmployees.txt"))) {
+                        while (credReader.hasNextLine()) {
+                            String line = credReader.nextLine().trim();
+                            if (line.isEmpty()) continue;
+
+                            try (Scanner s = new Scanner(line)) {
+                                int id = s.nextInt();
+                                String username = s.hasNext() ? s.next() : "";
+                                String salt = s.hasNext() ? s.next() : "";
+                                String hash = s.hasNext() ? s.next() : "";
+                                String pin = s.hasNext() ? s.next() : "";
+
+                                if (id == empID) {
+                                    if (!username.isEmpty()) emp.setUsername(username);
+                                    if (!salt.isEmpty() && !hash.isEmpty()) emp.setStoredPassword(salt, hash);
+                                    if (!pin.isEmpty()) emp.setPin(pin);
+                                    break;
+                                }
+                            } catch (Exception ex) {
+                                // skip malformed lines
+                            }
+                        }
+                    } catch (Exception e) {
+                        // ignore if file doesn't exist
+                    }
+                    return emp;
+                }
             }
+        } catch (Exception e) {
+            System.out.println("Error reading employees.txt");
+            e.printStackTrace();
         }
-    } catch (Exception e) {
-        System.out.println("Error reading employees.txt");
-        e.printStackTrace();
+        return null;
     }
-<<<<<<< HEAD
 
     @Override
     public AlterationRequest getAlterationByTrackingNumber(String trackingNumber) {
@@ -931,10 +944,71 @@ public void updateEmployee(BaseEmployee updatedEmp) {
 
         return true;
     }
-=======
-    return null; // not found
+
+    @Override
+    public String generateAlterationTrackingNumber() {
+        int maxNum = 0;
+        try {
+            ArrayList<AlterationRequest> requests = getAlterationRequests();
+            for (AlterationRequest r : requests) {
+                try {
+                    String trackingNum = r.getTrackingNumber();
+                    if (trackingNum.startsWith("ALT-")) {
+                        int num = Integer.parseInt(trackingNum.substring(4));
+                        if (num > maxNum) {
+                            maxNum = num;
+                        }
+                    }
+                } catch (NumberFormatException e) {
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        }
+        return "ALT-" + (maxNum + 1);
+    }
+
+
+    @Override
+    public ArrayList<AlterationRequest> getAlterationRequests() {
+        ArrayList<AlterationRequest> requests = new ArrayList<>();
+        File file = new File("alterations.txt");
+        if (!file.exists()) {
+            return requests;
+        }
+        try (Scanner myReader = new Scanner(file)) {
+            while (myReader.hasNextLine()) {
+                String data = myReader.nextLine().trim();
+                if (data.isEmpty()) {
+                    continue;
+                }
+                String[] parts = data.split("\\|", -1);
+                if (parts.length != 10) {
+                    System.out.println("Invalid alteration record: " + data);
+                    continue;
+                }
+                String trackingNumber = parts[0];
+                String customerName = parts[1];
+                String customerPhone = parts[2];
+                String itemSKU = parts[3];
+                String purchaseDate = parts[4];
+                String alterationInstructions = parts[5];
+                String measurements = parts[6];
+                double cost = Double.parseDouble(parts[7]);
+                String completionDate = parts[8];
+                String status = parts[9];
+                AlterationRequest request = new AlterationRequest(trackingNumber, customerName, customerPhone,
+                        itemSKU, purchaseDate, alterationInstructions,
+                        measurements, cost, completionDate, status);
+                requests.add(request);
+            }
+        } catch (Exception e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        }
+        return requests;
+    }
 }
 
 
->>>>>>> master
-}
