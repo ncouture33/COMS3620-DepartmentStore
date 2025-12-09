@@ -4,12 +4,10 @@ import java.util.ArrayList;
 
 import HR.BaseEmployee;
 import HR.OffboardingEmployee;
-import HR.Orientation.OrientationTask;
 import HR.Payroll;
 import HR.Paystub;
 import HR.Schedule;
 import HR.Timeoff;
-import StoreFloor.AlterationRequest;
 import StoreFloor.Customer;
 import StoreFloor.Rewards;
 import StoreOperations.ClockTime;
@@ -53,10 +51,6 @@ public interface DatabaseWriter {
 
     public void writeSchedule(Schedule schedule);
 
-    public void addOrientationTask(int empId, String taskName, String taskDescription);
-    public ArrayList<OrientationTask> getOrientationTasks(int empId);
-    public boolean completeOrientationTask(int empId, String taskName);
-
     public void addCustomerToRewardsProgram(Customer customer);
 
     public Rewards getCustomerRewards(String phoneNumber);
@@ -65,9 +59,7 @@ public interface DatabaseWriter {
 
     public void updateCustomerRewardsPoints(Rewards rewards);
 
-    public void writeAlterationRequest(AlterationRequest request);
+    public void updateEmployee(BaseEmployee employee);
 
-    public String generateAlterationTrackingNumber();
-
-    public ArrayList<AlterationRequest> getAlterationRequests();
+    public BaseEmployee getEmployeeByID(int empID);
 }

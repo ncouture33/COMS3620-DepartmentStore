@@ -14,8 +14,6 @@ public abstract class AbstractPOSSystem implements POSComponent{
     
     protected double totalPaid;
     protected double changeReturned;
-    // Gift cards created during the current transaction but not yet persisted
-    protected java.util.List<GiftCard> pendingGiftCards = new java.util.ArrayList<>();
 
     // currently logged-in employee for this terminal
     protected BaseEmployee loggedInEmployee;
@@ -38,40 +36,26 @@ public abstract class AbstractPOSSystem implements POSComponent{
 
     @Override
     public boolean finalizeSale(PaymentMethod payment, Customer customer) {
+        System.out.println("Processing payment method...");
+
+        // NEW: now returns amount paid
         double paid = payment.processPayment(total);
+
         if (paid < 0) {
             System.out.println("Payment failed.");
             return false;
         }
 
-        // delegate to the amount-based finalizer
-        return finalizeSale(paid, customer);
-    }
-
-    /**
-     * Finalize a sale given an already-processed amount (allows combining multiple payments).
-     */
-    public boolean finalizeSale(double paidAmount, Customer customer) {
-        totalPaid = paidAmount;
+        totalPaid = paid;
         // earn 1 point for every $1 spent
-        int pointsEarned = (int) totalPaid;
+        int pointsEarned = (int) paid; 
         if (customer != null && customer.isRewardsMember()) {
             customer.getRewards().addPoints(pointsEarned);
             System.out.println("Added " + pointsEarned + " points to customer " + customer.getName() + ". Total points: " + customer.getRewards().getPoints());
             DatabaseWriter database = new Database();
             database.updateCustomerRewardsPoints(customer.getRewards());
         }
-        changeReturned = (totalPaid > total) ? (totalPaid - total) : 0;
-
-        // Persist any gift cards created during this transaction now that payment succeeded
-        try {
-            for (GiftCard gc : pendingGiftCards) {
-                GiftCardDatabase.saveGiftCard(gc);
-            }
-        } catch (Exception ex) {
-            System.out.println("Warning: failed to persist one or more gift cards: " + ex.getMessage());
-        }
-        pendingGiftCards.clear();
+        changeReturned = (paid > total) ? (paid - total) : 0;
 
         printReceipt();
         reset();
@@ -128,6 +112,5 @@ public abstract class AbstractPOSSystem implements POSComponent{
         total = 0;total =0;
         totalPaid = 0;
         changeReturned =0; 
-        pendingGiftCards.clear();
     }
 }

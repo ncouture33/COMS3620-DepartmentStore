@@ -18,5 +18,3 @@ For reading and writing to the database:
 1. Have your class implement the interface `Data`.
 2. The database can then just call `getData()`. This will return the object's data as a string so that it can be written to a file. \
     **Note:** You will still need to implement a method to read from the text file and parse it into an object
-
-Products have been approved/rejected and are conceptual versions of inventory

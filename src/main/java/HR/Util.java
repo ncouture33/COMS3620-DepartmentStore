@@ -3,9 +3,11 @@ package HR;
 import java.util.ArrayList;
 import java.util.Scanner;
 
-import HR.Orientation.OrientationTask;
+import HR.Orientation.BasicOrientationTask;
+import HR.Orientation.NewEmployee;
 import Utils.Database;
 import Utils.DatabaseWriter;
+
 
 public class Util {
 
@@ -180,54 +182,107 @@ public class Util {
                 database.writePaystubs(list, date);
             }
             else if (command.equals("6")){
-                // Orientation sub-menu
-                while (true) {
-                    System.out.println("Orientation Menu:\n1: Assign task to employee\n2: List tasks for employee\n3: Mark task completed\n4: Back");
-                    String opt = scanner.nextLine();
-                    if (opt.equals("1")) {
-                        System.out.println("Enter employee ID:");
-                        String idInput = scanner.nextLine();
-                        int empId;
-                        try { empId = Integer.parseInt(idInput.trim()); } catch (NumberFormatException e) { System.out.println("Invalid ID"); continue; }
-                        System.out.println("Enter task name:");
-                        String tName = scanner.nextLine();
-                        System.out.println("Enter task description:");
-                        String tDesc = scanner.nextLine();
-                        database.addOrientationTask(empId, tName, tDesc);
-                        System.out.println("Task added for employee " + empId);
+                System.out.println("Enter employee first name: ");
+                String fName = scanner.nextLine();
+                System.out.println("Enter employee last name: ");
+                String lName = scanner.nextLine();
+                System.out.println("Enter employee DOB (YYYYMMDD): ");
+                int DOB = Integer.parseInt(scanner.nextLine());
+                System.out.println("Enter employee Social Security Number (XXXXXXXXX): ");
+                int social = Integer.parseInt(scanner.nextLine());
 
-                    } else if (opt.equals("2")) {
-                        System.out.println("Enter employee ID:");
-                        String idInput = scanner.nextLine();
-                        int empId;
-                        try { empId = Integer.parseInt(idInput.trim()); } catch (NumberFormatException e) { System.out.println("Invalid ID"); continue; }
-                        ArrayList<OrientationTask> tasks = database.getOrientationTasks(empId);
-                        if (tasks.isEmpty()) {
-                            System.out.println("No tasks found for employee " + empId);
-                        } else {
-                            System.out.println("Tasks for employee " + empId + ":");
-                            int i = 1;
-                            for (OrientationTask t : tasks) {
-                                System.out.println(i++ + ". [" + (t.isCompleted() ? "X" : " ") + "] " + t.getTaskName() + " - " + t.getTaskDescription());
-                            }
-                        }
-                        
-                    } else if (opt.equals("3")) {
-                        System.out.println("Enter employee ID:");
-                        String idInput = scanner.nextLine();
-                        int empId;
-                        try { empId = Integer.parseInt(idInput.trim()); } catch (NumberFormatException e) { System.out.println("Invalid ID"); continue; }
-                        System.out.println("Enter task name to mark completed:");
-                        String tName = scanner.nextLine();
-                        boolean ok = database.completeOrientationTask(empId, tName);
-                        if (ok) System.out.println("Marked completed."); else System.out.println("Task not found or already completed.");
-                    } else if (opt.equals("4")) {
-                        break;
-                    } else {
-                        System.out.println("Unknown option.");
-                    }
-                }
-            }
+                // Get account info
+                System.out.println("Enter bank name for direct deposit:");
+                String bankName = scanner.nextLine();
+                System.out.println("Enter routing number: ");
+                int routingNum = Integer.parseInt(scanner.nextLine());
+                System.out.println("Enter account number: ");
+                int accountNum = Integer.parseInt(scanner.nextLine());
+                String department = scanner.nextLine();
+                String role = scanner.nextLine();
+                // Create employee bank account
+                Account account = new Account(bankName, routingNum, accountNum);
+                NewEmployee employee = new NewEmployee (BaseEmployee.getNextEmployeeID(), fName, lName, DOB, social, department, role);
+                employee.setAccount(account);
+                OrientationSystem os = new OrientationSystem();
+
+                // Assign required tasks to the employee first
+                os.assignRequiredTasks(employee);
+
+                // Ask the user to enter the task details
+                System.out.println("Enter the name of the task to add and complete:");
+                String taskName = scanner.nextLine();
+                System.out.println("Enter the description of the task:");
+                String taskDesc = scanner.nextLine();
+
+                // Create and add the task to the employee
+                BasicOrientationTask task = new BasicOrientationTask(taskName, taskDesc);
+                employee.addOrientationTask(task);
+
+                // Start the orientation
+                employee.startOrientation();
+
+                // Complete the task
+                employee.completeOrientationTask(taskName);
+
+                // Notify manager and HR
+                os.notifyManagerAndHR(employee);
+            }else if (command.equals("7")) {
+    System.out.println("Enter Employee ID to update:");
+    int empID = Integer.parseInt(scanner.nextLine());
+
+    BaseEmployee employee = database.getEmployeeByID(empID);
+
+    if (employee == null) {
+        System.out.println("Employee not found.");
+        continue;
+    }
+
+    System.out.println("Current Role: " + employee.getRole());
+    System.out.println("Current Department: " + employee.getDepartment());
+    System.out.println("Enter new role:");
+    String newRole = scanner.nextLine();
+
+    System.out.println("Enter new department:");
+    String newDept = scanner.nextLine();
+
+    System.out.println("Enter new salary OR hourly rate:");
+    double newPay = Double.parseDouble(scanner.nextLine());
+
+    // Employee acceptance
+    System.out.println("Did the employee accept this change? (yes/no)");
+    boolean accepted = scanner.nextLine().equalsIgnoreCase("yes");
+
+    // HR Representative, validator, and notifier
+    INotificationService notifier = (INotificationService) new ConsoleNotifier();
+    InformationValidator validator = new BasicValidator();
+    HRRepresentative hrRep = new HRRepresentative(notifier, validator);
+
+    PromotionService promotionService = new PromotionService(
+        hrRep,
+        notifier,
+        validator,
+        "promotions.log"
+    );
+
+    boolean success = promotionService.processPromotion(
+        employee,
+        new Manager(-1, "System", "Manager", 0, 0,0, "general", "manager"),
+        newRole,
+        newPay,
+        newDept,
+        accepted
+    );
+
+    if (success) {
+        // Save updated employee info
+        database.updateEmployee(employee);
+        System.out.println("Employee successfully updated!");
+    } else {
+        System.out.println("Promotion/Demotion failed.");
+    }
+}
+
             //More options go here
 
             else if (command.equals("exit")){
@@ -235,5 +290,7 @@ public class Util {
                 break;
             }
         }
+
     }
+
 }

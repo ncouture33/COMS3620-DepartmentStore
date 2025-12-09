@@ -8,8 +8,8 @@ public class CashPayment implements PaymentMethod {
     @Override
     public double processPayment(double totalAmount) {
         if (amountGiven < totalAmount) {
-            System.out.println("Partial cash provided: $" + String.format("%.2f", amountGiven));
-            return amountGiven; // allow partial payment
+            System.out.println("Not enough cash provided.");
+            return -1; // payment failed
         }
 
         double change = amountGiven - totalAmount;
