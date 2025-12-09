@@ -1,6 +1,11 @@
 package StoreFloor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class StorePOS extends AbstractPOSSystem {
+    private RefundExchangeProcessor refundExchangeProcessor = new RefundExchangeProcessor();
+    private String lastPaymentMethod = "UNKNOWN";  // Track the payment method used
 
     @Override
     public void applyAwards(Customer customer) {
@@ -33,6 +38,38 @@ public class StorePOS extends AbstractPOSSystem {
         System.out.println("----------------------------\n");
     }
 
+    /**
+     * Override finalizeSale to record transaction in history for returns/exchanges
+     */
+    @Override
+    public boolean finalizeSale(double paidAmount, Customer customer) {
+        // Capture transaction details BEFORE calling super.finalizeSale() 
+        // because super.finalizeSale() calls reset() which clears currentSale
+        String transactionId = refundExchangeProcessor.getNextTransactionId();
+        List<Item> itemsCopy = new ArrayList<>(currentSale);
+        double totalAmount = total;
+        
+        boolean result = super.finalizeSale(paidAmount, customer);
+        
+        if (result) {
+            // Record this transaction for potential future returns/exchanges
+            Transaction transaction = new Transaction(
+                transactionId,
+                itemsCopy,
+                totalAmount,
+                paidAmount,
+                changeReturned,
+                System.currentTimeMillis(),
+                lastPaymentMethod,  // Use the actual payment method
+                customer
+            );
+            refundExchangeProcessor.recordTransaction(transaction);
+            System.out.println("Transaction ID: " + transactionId);
+        }
+        
+        return result;
+    }
+
     // Gift Card purchase (optional)
     public GiftCard createGiftCard(String cardNumber, double amount) {
         GiftCard giftCard = new GiftCard(cardNumber);
@@ -40,4 +77,26 @@ public class StorePOS extends AbstractPOSSystem {
         GiftCardDatabase.saveGiftCard(giftCard);
         return giftCard;
     }
+
+    /**
+     * Get the refund/exchange processor for this POS terminal
+     */
+    public RefundExchangeProcessor getRefundExchangeProcessor() {
+        return refundExchangeProcessor;
+    }
+
+    /**
+     * Set the payment method for this transaction
+     */
+    public void setPaymentMethod(String method) {
+        this.lastPaymentMethod = method;
+    }
+
+    /**
+     * Get the last payment method used
+     */
+    public String getLastPaymentMethod() {
+        return lastPaymentMethod;
+    }
 }
+

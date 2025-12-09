@@ -32,7 +32,7 @@ public class Main {
             if (command.equals("1")) {
                 HR.Util.runHR(scanner);
             } else if (command.equals("2")) {
-                StoreFloor.Util.runSales(scanner);
+                StoreFloor.Util.cashierMenu(scanner);
             } else if (command.equals("3")) {
                 StoreOperations.Util.runOperations(scanner);
             } else if (command.equals("5")) {
