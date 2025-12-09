@@ -7,8 +7,8 @@ public class OffboardingEmployee extends BaseEmployee implements EmployeeActions
     protected String reasonOfLeaving;
     protected String date;
 
-    public OffboardingEmployee(int id, String fName, String lName, int DOB, int social, String date,String reasonOfLeaving) {
-        super(id, fName, lName, DOB, social); 
+    public OffboardingEmployee(int id, String fName, String lName, int DOB, int social,String department,String role,  String date,String reasonOfLeaving) {
+        super(id, fName, lName, DOB, social, department, role); 
         this.reasonOfLeaving = reasonOfLeaving;
         this.date = date;
     }
@@ -50,5 +50,6 @@ public class OffboardingEmployee extends BaseEmployee implements EmployeeActions
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'resetTimeCard'");
     }
-    
+    @Override
+    public void updateSalary(double newSalary){}
 }

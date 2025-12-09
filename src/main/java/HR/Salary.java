@@ -3,8 +3,8 @@ package HR;
 public class Salary extends BaseEmployee {
     private int salary;
 
-    public Salary(int id, String fName, String lName, int DOB, int social, int salary) {
-        super(id, fName, lName, DOB, social);
+    public Salary(int id, String fName, String lName, int DOB, int social, int salary, String department, String role) {
+        super(id, fName, lName, DOB, social, department, role);
         this.salary = salary;
     }
 
@@ -34,5 +34,9 @@ public class Salary extends BaseEmployee {
 
     public String getData(){
         return "SALARY " + super.getData() + salary + " ";
+    }
+    @Override
+    public void updateSalary(double newSalary){
+        this.salary = (int)newSalary;
     }
 }

@@ -1,5 +1,5 @@
 PD001|Classic Hoodie|designer01|APPROVED|true|docs/hoodie_v1.pdf|
 PD002|Classic Hoodie|designer01|DRAFT|false|docs/hoodie_v1.pdf|
-PD003|Classic Hoodie|designer01|DRAFT|false|docs/hoodie_v1.pdf|
+PD003|Classic Hoodie|designer01|REJECTED|false|docs/hoodie_v1.pdf|Unknown
 PD004|Classic Hoodie|designer01|DRAFT|false|docs/hoodie_v1.pdf|
-PD005|Classic Hoodie|designer01|DRAFT|false|docs/hoodie_v1.pdf|
+PD005|Classic Hoodie|designer01|APPROVED|true|docs/hoodie_v1.pdf|

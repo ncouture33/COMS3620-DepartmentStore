@@ -8,9 +8,9 @@ import HR.Payroll;
 import HR.Paystub;
 import HR.Schedule;
 import HR.Timeoff;
-import StoreOperations.ClockTime;
 import StoreFloor.Customer;
 import StoreFloor.Rewards;
+import StoreOperations.ClockTime;
 
 public interface DatabaseWriter {
     public void writeEmployee(BaseEmployee data);
@@ -58,4 +58,8 @@ public interface DatabaseWriter {
     public int generateCustomerRewardsID();
 
     public void updateCustomerRewardsPoints(Rewards rewards);
+
+    public void updateEmployee(BaseEmployee employee);
+
+    public BaseEmployee getEmployeeByID(int empID);
 }

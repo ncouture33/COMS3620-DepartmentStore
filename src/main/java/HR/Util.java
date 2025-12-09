@@ -26,6 +26,7 @@ public class Util {
                 "4: View Upcoming Payroll\n" +
                 "5: Execute Payroll\n" +
                 "6: Orientation\n" +
+                "7; Promotion/ Demotion\n"+
                 "Type 'exit' to return to main menu.\n"
             );
 
@@ -62,8 +63,12 @@ public class Util {
                 if (empType.equals("S")) {
                     System.out.println("Enter employee salary: ");
                     int salary = Integer.parseInt(scanner.nextLine());
+                    System.out.println("Enter Department: ");
+                    String department = scanner.nextLine();
+                    System.out.println("Enter Role: ");
+                    String role = scanner.nextLine();
 
-                    Salary emp = new Salary(BaseEmployee.getNextEmployeeID(), fName, lName, DOB, social, salary);
+                    Salary emp = new Salary(BaseEmployee.getNextEmployeeID(), fName, lName, DOB, social, salary, department, role);
 
                     emp.setAccount(account);
 
@@ -74,8 +79,12 @@ public class Util {
                     double hourlyRate = Double.parseDouble(scanner.nextLine());
                     System.out.println("Enter employee overtime rate: ");
                     double overtimeRate = Double.parseDouble(scanner.nextLine());
+                    System.out.println("Enter Department: ");
+                    String department = scanner.nextLine();
+                    System.out.println("Enter Role: ");
+                    String role = scanner.nextLine();
 
-                    Hourly emp = new Hourly(BaseEmployee.getNextEmployeeID(), fName, lName, DOB, social, hourlyRate, overtimeRate);
+                    Hourly emp = new Hourly(BaseEmployee.getNextEmployeeID(), fName, lName, DOB, social, hourlyRate, overtimeRate, department, role);
 
                     emp.setAccount(account);
 
@@ -189,10 +198,11 @@ public class Util {
                 int routingNum = Integer.parseInt(scanner.nextLine());
                 System.out.println("Enter account number: ");
                 int accountNum = Integer.parseInt(scanner.nextLine());
-
+                String department = scanner.nextLine();
+                String role = scanner.nextLine();
                 // Create employee bank account
                 Account account = new Account(bankName, routingNum, accountNum);
-                NewEmployee employee = new NewEmployee (BaseEmployee.getNextEmployeeID(), fName, lName, DOB, social);
+                NewEmployee employee = new NewEmployee (BaseEmployee.getNextEmployeeID(), fName, lName, DOB, social, department, role);
                 employee.setAccount(account);
                 OrientationSystem os = new OrientationSystem();
 
@@ -217,7 +227,62 @@ public class Util {
 
                 // Notify manager and HR
                 os.notifyManagerAndHR(employee);
-            }
+            }else if (command.equals("7")) {
+    System.out.println("Enter Employee ID to update:");
+    int empID = Integer.parseInt(scanner.nextLine());
+
+    BaseEmployee employee = database.getEmployeeByID(empID);
+
+    if (employee == null) {
+        System.out.println("Employee not found.");
+        continue;
+    }
+
+    System.out.println("Current Role: " + employee.getRole());
+    System.out.println("Current Department: " + employee.getDepartment());
+    System.out.println("Enter new role:");
+    String newRole = scanner.nextLine();
+
+    System.out.println("Enter new department:");
+    String newDept = scanner.nextLine();
+
+    System.out.println("Enter new salary OR hourly rate:");
+    double newPay = Double.parseDouble(scanner.nextLine());
+
+    // Employee acceptance
+    System.out.println("Did the employee accept this change? (yes/no)");
+    boolean accepted = scanner.nextLine().equalsIgnoreCase("yes");
+
+    // HR Representative, validator, and notifier
+    INotificationService notifier = (INotificationService) new ConsoleNotifier();
+    InformationValidator validator = new BasicValidator();
+    HRRepresentative hrRep = new HRRepresentative(notifier, validator);
+
+    PromotionService promotionService = new PromotionService(
+        hrRep,
+        notifier,
+        validator,
+        "promotions.log"
+    );
+
+    boolean success = promotionService.processPromotion(
+        employee,
+        new Manager(-1, "System", "Manager", 0, 0,0, "general", "manager"),
+        newRole,
+        newPay,
+        newDept,
+        accepted
+    );
+
+    if (success) {
+        // Save updated employee info
+        database.updateEmployee(employee);
+        System.out.println("Employee successfully updated!");
+    } else {
+        System.out.println("Promotion/Demotion failed.");
+    }
+}
+
             //More options go here
 
             else if (command.equals("exit")){

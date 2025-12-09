@@ -5,8 +5,8 @@ public class Hourly extends BaseEmployee{
     private double hourlyRate;
     private double overtimeRate;
 
-    public Hourly(int id, String fName, String lName, int DOB, int social, double hourlyRate, double overtimeRate) {
-        super(id, fName, lName, DOB, social);
+    public Hourly(int id, String fName, String lName, int DOB, int social, double hourlyRate, double overtimeRate, String department, String role) {
+        super(id, fName, lName, DOB, social, department, role);
         this.hourlyRate = hourlyRate;
         this.overtimeRate = overtimeRate;
     }
@@ -42,5 +42,9 @@ public class Hourly extends BaseEmployee{
     }
     public String getData(){
         return "HOURLY " + super.getData() + hourlyRate + " " + overtimeRate + " ";
+    }
+    @Override
+    public void updateSalary(double newSalary){
+        this.hourlyRate = newSalary;
     }
 }

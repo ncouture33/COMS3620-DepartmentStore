@@ -105,6 +105,12 @@ public class Util {
         }else {
             System.out.println("Enter Giftcard Number: ");
             String card = scanner.nextLine();
+            for(Item i : pos.currentSale){
+                if(i.getName().equalsIgnoreCase("giftcard")){
+                System.out.println("Can not buy a gift card with a giftcard");
+                break;
+                }
+            }
             PaymentMethod payment = new GiftCardPayment(card);
             pos.finalizeSale(payment, customer);
         }

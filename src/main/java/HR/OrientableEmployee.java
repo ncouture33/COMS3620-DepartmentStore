@@ -4,13 +4,12 @@ package HR;
 import java.util.ArrayList;
 import java.util.List;
 
-
 import HR.Orientation.OrientationTask;
 
 public abstract class OrientableEmployee extends BaseEmployee implements HR.Orientation.Orientable {
     private List<OrientationTask> tasks = new ArrayList<>();
-    public OrientableEmployee (int id, String fName, String lName, int DOB, int social) {
-       super(id, fName, lName, DOB, social);
+    public OrientableEmployee (int id, String fName, String lName, int DOB, int social, String department, String role) {
+       super(id, fName, lName, DOB, social, department, role);
     }
     @Override
     public void addOrientationTask(HR.Orientation.OrientationTask task) {
